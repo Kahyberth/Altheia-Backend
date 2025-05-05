@@ -1,0 +1,30 @@
+# Binaries for programs and plugins
+*.exe
+*.exe~
+*.dll
+*.so
+*.dylib
+*.test
+*.out
+
+# Output of the go coverage tool
+*.coverprofile
+
+# Dependency directories (if you are using Go modules, you can keep /vendor if needed)
+vendor/
+
+# GoLand-specific files
+.idea/
+*.iml
+
+# Logs and temp files
+*.log
+*.tmp
+*.swp
+
+# OS-specific
+.DS_Store
+Thumbs.db
+
+# Environment files
+.env
