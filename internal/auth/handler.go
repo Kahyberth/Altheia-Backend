@@ -1,6 +1,7 @@
 package auth
 
 import (
+	"Altheia-Backend/pkg/utils"
 	"github.com/gofiber/fiber/v2"
 )
 
@@ -42,4 +43,16 @@ func (h *Handler) Profile(c *fiber.Ctx) error {
 		return c.Status(404).JSON(fiber.Map{"error": "user not found"})
 	}
 	return c.JSON(user)
+}
+
+func (h *Handler) RefreshTokenH(c *fiber.Ctx) error {
+	c.AllParams()
+	refreshToken := c.Params("refresh_token")
+	accessToken, refreshToken, err := utils.RefreshToken(refreshToken)
+
+	if err != nil {
+		return c.Status(400).JSON(fiber.Map{"error": "cannot parse JSON"})
+	}
+
+	return c.JSON(fiber.Map{"refresh_token": refreshToken, "access_token": accessToken, "message": "refresh token successfully"})
 }

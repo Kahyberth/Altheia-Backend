@@ -36,7 +36,7 @@ func (s *service) Login(email, password string) (string, error) {
 	if err != nil || !utils.CheckPasswordHash(password, user.Password) {
 		return "", errors.New("invalid credentials")
 	}
-	return utils.GenerateJWT(user.ID)
+	return utils.GenerateJWT(user.ID, 0)
 }
 
 func (s *service) GetProfile(id string) (*User, error) {

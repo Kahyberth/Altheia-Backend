@@ -2,15 +2,17 @@ package utils
 
 import (
 	"github.com/golang-jwt/jwt/v5"
-	"golang.org/x/crypto/bcrypt"
 	"os"
 	"time"
 )
 
-func GenerateJWT(userID string) (string, error) {
+func GenerateJWT(userID string, isTime int16) (string, error) {
+	if isTime <= 0 {
+		isTime = 1
+	}
 	claims := jwt.MapClaims{
 		"sub": userID,
-		"exp": time.Now().Add(time.Hour * 72).Unix(),
+		"exp": time.Now().Add(time.Hour * time.Duration(isTime)).Unix(),
 	}
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
 	return token.SignedString([]byte(os.Getenv("JWT_SECRET")))
@@ -27,11 +29,20 @@ func ValidateJWT(tokenStr string) (string, error) {
 	return claims["sub"].(string), nil
 }
 
-func HashPassword(password string) (string, error) {
-	bytes, err := bcrypt.GenerateFromPassword([]byte(password), 14)
-	return string(bytes), err
-}
+func RefreshToken(tokenStr string) (string, string, error) {
 
-func CheckPasswordHash(password, hash string) bool {
-	return bcrypt.CompareHashAndPassword([]byte(hash), []byte(password)) == nil
+	payload, err := ValidateJWT(tokenStr)
+
+	if err != nil {
+		return "", "", err
+	}
+
+	newAccessToken, err := GenerateJWT(payload, 3)
+	refreshToken, err := GenerateJWT(payload, 168)
+
+	if err != nil {
+		return "", "", err
+	}
+
+	return newAccessToken, refreshToken, nil
 }
