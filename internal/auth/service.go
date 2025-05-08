@@ -1,6 +1,7 @@
 package auth
 
 import (
+	"Altheia-Backend/internal/mail"
 	"Altheia-Backend/pkg/utils"
 	"errors"
 	"github.com/matoous/go-nanoid"
@@ -28,7 +29,15 @@ func (s *service) Register(user *User) error {
 	}
 	user.ID = nanoid
 	user.Password = hashed
-	return s.repo.Create(user)
+
+	newUser := s.repo.Create(user)
+
+	emailError := mail.SendWelcomeMessage(user.Name, []string{user.Email})
+	if emailError != nil {
+		return err
+	}
+
+	return newUser
 }
 
 func (s *service) Login(email, password string) (string, error) {

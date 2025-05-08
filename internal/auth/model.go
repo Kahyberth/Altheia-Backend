@@ -17,9 +17,8 @@ type User struct {
 	CreatedAt time.Time      `json:"createdAt"`
 	UpdatedAt time.Time      `json:"updatedAt"`
 	DeletedAt gorm.DeletedAt `gorm:"index" json:"-"`
+	LastLogin time.Time      `json:"lastLogin"`
 
-	LastLogin time.Time `json:"lastLogin"`
-
-	Patient   *patient.Patient     `gorm:"foreignKey:UserId" json:"patient,omitempty"`
-	Physician *physician.Physician `gorm:"foreignKey:UserId" json:"physician,omitempty"`
+	Patient   *patient.Patient     `gorm:"foreignKey:UserID;references:ID" json:"patient,omitempty"`
+	Physician *physician.Physician `gorm:"foreignKey:UserID;references:ID" json:"physician,omitempty"`
 }

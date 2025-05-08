@@ -7,7 +7,7 @@ import (
 
 type Patient struct {
 	ID             string         `gorm:"primaryKey" json:"id"`
-	UserID         string         `json:"user_id"`
+	UserID         string         `gorm:"not null;index" json:"user_id"`
 	DocumentNumber string         `json:"document_number"`
 	DateOfBirth    string         `json:"date_of_birth"`
 	Gender         string         `json:"gender"`
