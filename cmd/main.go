@@ -5,12 +5,18 @@ import (
 	"Altheia-Backend/internal/auth"
 	"Altheia-Backend/internal/db"
 	"Altheia-Backend/internal/middleware"
+	"Altheia-Backend/internal/patient"
+	"Altheia-Backend/internal/physician"
 	"github.com/gofiber/fiber/v2"
 )
 
 func main() {
 	database := db.GetDB()
-	err := database.AutoMigrate(&auth.User{})
+	err := database.AutoMigrate(
+		&auth.User{},
+		&patient.Patient{},
+		&physician.Physician{},
+	)
 	if err != nil {
 		return
 	}
