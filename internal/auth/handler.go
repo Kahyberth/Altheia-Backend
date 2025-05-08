@@ -3,6 +3,7 @@ package auth
 import (
 	"Altheia-Backend/pkg/utils"
 	"github.com/gofiber/fiber/v2"
+	"time"
 )
 
 type Handler struct {
@@ -25,15 +26,39 @@ func (h *Handler) Register(c *fiber.Ctx) error {
 }
 
 func (h *Handler) Login(c *fiber.Ctx) error {
-	var creds User
-	if err := c.BodyParser(&creds); err != nil {
+	var data User
+	if err := c.BodyParser(&data); err != nil {
 		return c.Status(400).JSON(fiber.Map{"error": "cannot parse JSON"})
 	}
-	token, err := h.service.Login(creds.Email, creds.Password)
+
+	accessToken, refreshToken, err := h.service.Login(data.Email, data.Password)
+
 	if err != nil {
 		return c.Status(401).JSON(fiber.Map{"error": err.Error()})
 	}
-	return c.JSON(fiber.Map{"token": token})
+
+	accessTokenCookie := fiber.Cookie{
+		Name:     "access_token",
+		Value:    accessToken,
+		Expires:  time.Now().Add(1 * time.Hour),
+		HTTPOnly: true,
+		SameSite: "Lax",
+		Path:     "/",
+	}
+
+	refreshTokenCookie := fiber.Cookie{
+		Name:     "refresh_token",
+		Value:    refreshToken,
+		Expires:  time.Now().Add(72 * time.Hour),
+		HTTPOnly: true,
+		SameSite: "Lax",
+		Path:     "/",
+	}
+
+	c.Cookie(&accessTokenCookie)
+	c.Cookie(&refreshTokenCookie)
+
+	return c.JSON(fiber.Map{"accessToken": accessToken, "refreshToken": refreshToken})
 }
 
 func (h *Handler) Profile(c *fiber.Ctx) error {
@@ -55,4 +80,17 @@ func (h *Handler) RefreshTokenH(c *fiber.Ctx) error {
 	}
 
 	return c.JSON(fiber.Map{"refresh_token": refreshToken, "access_token": accessToken, "message": "refresh token successfully"})
+}
+
+func (h *Handler) Logout(c *fiber.Ctx) error {
+	cookie := fiber.Cookie{
+		Name:     "access_token",
+		Value:    "",
+		Expires:  time.Now().Add(-1 * time.Hour),
+		HTTPOnly: true,
+		Path:     "/",
+	}
+
+	c.Cookie(&cookie)
+	return c.JSON(fiber.Map{"message": "logout successful"})
 }

@@ -9,7 +9,7 @@ import (
 
 type Service interface {
 	Register(user *User) error
-	Login(email, password string) (string, error)
+	Login(email, password string) (string, string, error)
 	GetProfile(id string) (*User, error)
 }
 
@@ -40,12 +40,24 @@ func (s *service) Register(user *User) error {
 	return newUser
 }
 
-func (s *service) Login(email, password string) (string, error) {
+func (s *service) Login(email, password string) (string, string, error) {
 	user, err := s.repo.FindByEmail(email)
+
 	if err != nil || !utils.CheckPasswordHash(password, user.Password) {
-		return "", errors.New("invalid credentials")
+		return "", "", errors.New("invalid credentials")
 	}
-	return utils.GenerateJWT(user.ID, 0)
+
+	accessToken, tokenError := utils.GenerateJWT(user.ID, 1)
+
+	if tokenError != nil {
+	}
+
+	refreshToken, refreshError := utils.GenerateJWT(user.ID, 72)
+
+	if refreshError != nil {
+	}
+
+	return accessToken, refreshToken, nil
 }
 
 func (s *service) GetProfile(id string) (*User, error) {
