@@ -8,6 +8,8 @@ import (
 	"Altheia-Backend/internal/patient"
 	"Altheia-Backend/internal/physician"
 	"github.com/gofiber/fiber/v2"
+	"github.com/gofiber/fiber/v2/middleware/cors"
+	"os"
 )
 
 func main() {
@@ -20,15 +22,22 @@ func main() {
 	if err != nil {
 		return
 	}
+	client := os.Getenv("CLIENT")
 
 	authRepo := auth.NewRepository(database)
 	authService := auth.NewService(authRepo)
 	authHandler := auth.NewHandler(authService)
 
 	app := fiber.New()
+	app.Use(cors.New(cors.Config{
+		AllowOrigins:     client,
+		AllowHeaders:     "Origin, Content-Type, Accept, Authorization",
+		AllowMethods:     "GET, POST, PUT, DELETE, OPTIONS",
+		AllowCredentials: true,
+	}))
 
 	authGroup := app.Group("/auth")
-	authGroup.Post("/register", authHandler.Register)
+	authGroup.Post("/register", authHandler.RegisterPatient)
 	authGroup.Post("/login", authHandler.Login)
 	authGroup.Post("/refresh-token/:refresh_token", authHandler.RefreshTokenH)
 

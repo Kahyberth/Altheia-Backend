@@ -1,7 +1,3 @@
-<div align="center">
-  <img src="ruta/a/tu/imagen.png" alt="Altheia Logo" width="300"/>
-</div>
-
 # Altheia - Backend
 
 **Altheia** es el sistema backend de una aplicación de Historia Clínica Electrónica (EHR, por sus siglas en inglés) diseñada para mejorar la gestión, almacenamiento y acceso a los datos médicos de los pacientes. Este sistema proporciona una API segura, escalable y moderna para facilitar la integración con distintos servicios de salud.

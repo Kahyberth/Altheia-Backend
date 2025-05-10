@@ -2,13 +2,14 @@ package auth
 
 import (
 	"Altheia-Backend/internal/mail"
+	"Altheia-Backend/internal/patient"
 	"Altheia-Backend/pkg/utils"
 	"errors"
 	"github.com/matoous/go-nanoid"
 )
 
 type Service interface {
-	Register(user *User) error
+	RegisterPatient(user *User) error
 	Login(email, password string) (string, string, error)
 	GetProfile(id string) (*User, error)
 }
@@ -21,14 +22,29 @@ func NewService(r Repository) Service {
 	return &service{r}
 }
 
-func (s *service) Register(user *User) error {
+func (s *service) RegisterPatient(user *User) error {
 	hashed, _ := utils.HashPassword(user.Password)
 	nanoid, err := gonanoid.Nanoid()
+	patientNanoid, err := gonanoid.Nanoid()
 	if err != nil {
 		return err
 	}
 	user.ID = nanoid
 	user.Password = hashed
+
+	newPatient := &patient.Patient{
+		ID:             patientNanoid,
+		UserID:         user.ID,
+		DocumentNumber: "",
+		DateOfBirth:    "",
+		Gender:         "",
+		Address:        "",
+		Phone:          "",
+		Eps:            "",
+		BloodType:      "",
+	}
+
+	user.Patient = newPatient
 
 	newUser := s.repo.Create(user)
 
