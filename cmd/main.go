@@ -39,6 +39,8 @@ func main() {
 	authGroup := app.Group("/auth")
 	authGroup.Post("/register", authHandler.RegisterPatient)
 	authGroup.Post("/login", authHandler.Login)
+	authGroup.Post("/logout", authHandler.Logout)
+	authGroup.Get("/verify-token", authHandler.VerifyToken)
 	authGroup.Post("/refresh-token/:refresh_token", authHandler.RefreshTokenH)
 
 	profile := app.Group("/profile")

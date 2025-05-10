@@ -12,6 +12,7 @@ type Service interface {
 	RegisterPatient(user *User) error
 	Login(email, password string) (string, string, error)
 	GetProfile(id string) (*User, error)
+	verifyToken(token string) (string, error)
 }
 
 type service struct {
@@ -78,4 +79,12 @@ func (s *service) Login(email, password string) (string, string, error) {
 
 func (s *service) GetProfile(id string) (*User, error) {
 	return s.repo.FindByID(id)
+}
+
+func (s *service) Logout() error {
+	return nil
+}
+
+func (s *service) verifyToken(token string) (string, error) {
+	return utils.ValidateJWT(token)
 }

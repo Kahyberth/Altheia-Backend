@@ -1,6 +1,8 @@
 package utils
 
 import (
+	"errors"
+	"fmt"
 	"github.com/golang-jwt/jwt/v5"
 	"os"
 	"time"
@@ -20,13 +22,31 @@ func GenerateJWT(userID string, isTime int16) (string, error) {
 
 func ValidateJWT(tokenStr string) (string, error) {
 	token, err := jwt.Parse(tokenStr, func(token *jwt.Token) (interface{}, error) {
+		if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
+			return nil, fmt.Errorf("unexpected signing method: %v", token.Header["alg"])
+		}
 		return []byte(os.Getenv("JWT_SECRET")), nil
 	})
-	if err != nil || !token.Valid {
-		return "", err
+
+	if err != nil {
+		return "", fmt.Errorf("invalid token: %v", err)
 	}
-	claims := token.Claims.(jwt.MapClaims)
-	return claims["sub"].(string), nil
+
+	if !token.Valid {
+		return "", errors.New("invalid token")
+	}
+
+	claims, ok := token.Claims.(jwt.MapClaims)
+	if !ok {
+		return "", errors.New("invalid token claims")
+	}
+
+	sub, ok := claims["sub"].(string)
+	if !ok || sub == "" {
+		return "", errors.New("missing or invalid 'sub' claim")
+	}
+
+	return sub, nil
 }
 
 func RefreshToken(tokenStr string) (string, string, error) {

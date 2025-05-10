@@ -112,3 +112,22 @@ func (h *Handler) Logout(c *fiber.Ctx) error {
 	c.Cookie(&cookie)
 	return c.JSON(fiber.Map{"message": "logout successful"})
 }
+
+func (h *Handler) VerifyToken(c *fiber.Ctx) error {
+	token := c.Cookies("access_token")
+	if token == "" {
+		return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{
+			"error": "Token no proporcionado",
+		})
+	}
+	data, err := h.service.verifyToken(token)
+	if err != nil {
+		return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{
+			"error": "Token inválido o expirado",
+		})
+	}
+	return c.JSON(fiber.Map{
+		"isValid":      true,
+		"access_token": data,
+	})
+}
