@@ -84,7 +84,7 @@ func (h *Handler) Login(c *fiber.Ctx) error {
 	c.Cookie(&accessTokenCookie)
 	c.Cookie(&refreshTokenCookie)
 
-	return c.JSON(fiber.Map{"accessToken": accessToken, "refreshToken": refreshToken, "User": user})
+	return c.JSON(fiber.Map{"accessToken": accessToken, "refreshToken": refreshToken, "user": user})
 }
 
 func (h *Handler) Profile(c *fiber.Ctx) error {
