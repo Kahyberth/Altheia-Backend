@@ -50,16 +50,17 @@ func ValidateJWT(tokenStr string) (string, error) {
 }
 
 func RefreshToken(tokenStr string) (string, string, error) {
-
 	payload, err := ValidateJWT(tokenStr)
-
 	if err != nil {
 		return "", "", err
 	}
 
 	newAccessToken, err := GenerateJWT(payload, 3)
-	refreshToken, err := GenerateJWT(payload, 168)
+	if err != nil {
+		return "", "", err
+	}
 
+	refreshToken, err := GenerateJWT(payload, 168)
 	if err != nil {
 		return "", "", err
 	}

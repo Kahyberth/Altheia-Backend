@@ -22,6 +22,7 @@ func main() {
 	if err != nil {
 		return
 	}
+
 	client := os.Getenv("CLIENT")
 
 	authRepo := auth.NewRepository(database)
@@ -41,6 +42,7 @@ func main() {
 	authGroup.Post("/login", authHandler.Login)
 	authGroup.Post("/logout", authHandler.Logout)
 	authGroup.Get("/verify-token", authHandler.VerifyToken)
+	authGroup.Use(middleware.JWTProtected())
 	authGroup.Post("/refresh-token/:refresh_token", authHandler.RefreshTokenH)
 
 	profile := app.Group("/profile")

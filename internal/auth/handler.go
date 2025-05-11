@@ -2,6 +2,7 @@ package auth
 
 import (
 	"Altheia-Backend/pkg/utils"
+	"fmt"
 	"github.com/gofiber/fiber/v2"
 	"time"
 )
@@ -13,6 +14,7 @@ type RegisterPatient struct {
 	Role        string `json:"role"`
 	DateOfBirth string `json:"date_of_birth"`
 	Gender      string `json:"gender"`
+	Phone       string `json:"phone"`
 }
 
 type Handler struct {
@@ -34,6 +36,8 @@ func (h *Handler) RegisterPatient(c *fiber.Ctx) error {
 		Email:    user.Email,
 		Password: user.Password,
 		Rol:      user.Role,
+		Gender:   user.Gender,
+		Phone:    user.Phone,
 		Status:   true,
 	}
 
@@ -61,6 +65,7 @@ func (h *Handler) Login(c *fiber.Ctx) error {
 		Expires:  time.Now().Add(1 * time.Hour),
 		HTTPOnly: true,
 		SameSite: "Lax",
+		Secure:   false,
 		Path:     "/",
 	}
 
@@ -70,6 +75,7 @@ func (h *Handler) Login(c *fiber.Ctx) error {
 		Expires:  time.Now().Add(72 * time.Hour),
 		HTTPOnly: true,
 		SameSite: "Lax",
+		Secure:   false,
 		Path:     "/",
 	}
 
@@ -106,6 +112,8 @@ func (h *Handler) Logout(c *fiber.Ctx) error {
 		Value:    "",
 		Expires:  time.Now().Add(-1 * time.Hour),
 		HTTPOnly: true,
+		SameSite: "Lax",
+		Secure:   false,
 		Path:     "/",
 	}
 
@@ -114,6 +122,7 @@ func (h *Handler) Logout(c *fiber.Ctx) error {
 }
 
 func (h *Handler) VerifyToken(c *fiber.Ctx) error {
+	fmt.Print("Se esta verificando...")
 	token := c.Cookies("access_token")
 	if token == "" {
 		return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{
@@ -126,6 +135,7 @@ func (h *Handler) VerifyToken(c *fiber.Ctx) error {
 			"error": "Token inválido o expirado",
 		})
 	}
+	fmt.Print("Se verifico el token!")
 	return c.JSON(fiber.Map{
 		"isValid":      true,
 		"access_token": data,

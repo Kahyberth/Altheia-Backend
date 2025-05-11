@@ -38,9 +38,7 @@ func (s *service) RegisterPatient(user *User) error {
 		UserID:         user.ID,
 		DocumentNumber: "",
 		DateOfBirth:    "",
-		Gender:         "",
 		Address:        "",
-		Phone:          "",
 		Eps:            "",
 		BloodType:      "",
 	}

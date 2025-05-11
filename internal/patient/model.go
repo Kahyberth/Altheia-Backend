@@ -10,9 +10,7 @@ type Patient struct {
 	UserID         string         `gorm:"not null;index" json:"user_id"`
 	DocumentNumber string         `json:"document_number"`
 	DateOfBirth    string         `json:"date_of_birth"`
-	Gender         string         `json:"gender"`
 	Address        string         `json:"address"`
-	Phone          string         `json:"phone"`
 	Eps            string         `json:"eps"`
 	BloodType      string         `json:"blood_type"`
 	CreatedAt      time.Time      `json:"createdAt"`

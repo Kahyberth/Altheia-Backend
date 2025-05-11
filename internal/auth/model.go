@@ -13,7 +13,9 @@ type User struct {
 	Email     string         `gorm:"unique" json:"email"`
 	Password  string         `json:"password"`
 	Rol       string         `json:"rol"`
+	Phone     string         `json:"phone"`
 	Status    bool           `json:"status"`
+	Gender    string         `json:"gender"`
 	CreatedAt time.Time      `json:"createdAt"`
 	UpdatedAt time.Time      `json:"updatedAt"`
 	DeletedAt gorm.DeletedAt `gorm:"index" json:"-"`
