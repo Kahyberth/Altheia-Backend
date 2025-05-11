@@ -8,46 +8,12 @@ import (
 	"time"
 )
 
-type RegisterInfo struct {
-	Name        string `json:"name"`
-	Email       string `json:"email"`
-	Password    string `json:"password"`
-	Role        string `json:"role"`
-	DateOfBirth string `json:"date_of_birth"`
-	Gender      string `json:"gender"`
-	Phone       string `json:"phone"`
-	CC          string `json:"cc"`
-}
-
 type Handler struct {
 	service Service
 }
 
 func NewHandler(s Service) *Handler {
 	return &Handler{s}
-}
-
-func (h *Handler) Register(c *fiber.Ctx) error {
-	var user RegisterInfo
-	if err := c.BodyParser(&user); err != nil {
-		return c.Status(400).JSON(fiber.Map{"error": "cannot parse JSON"})
-	}
-
-	newUser := users.User{
-		Name:           user.Name,
-		Email:          user.Email,
-		Password:       user.Password,
-		Rol:            user.Role,
-		Gender:         user.Gender,
-		Phone:          user.Phone,
-		DocumentNumber: user.CC,
-		Status:         true,
-	}
-
-	if err := h.service.Register(&newUser); err != nil {
-		return c.Status(500).JSON(fiber.Map{"error": err.Error()})
-	}
-	return c.JSON(fiber.Map{"message": "registered successfully"})
 }
 
 func (h *Handler) Login(c *fiber.Ctx) error {
@@ -88,15 +54,6 @@ func (h *Handler) Login(c *fiber.Ctx) error {
 	c.Cookie(&refreshTokenCookie)
 
 	return c.JSON(fiber.Map{"accessToken": accessToken, "refreshToken": refreshToken, "user": user})
-}
-
-func (h *Handler) Profile(c *fiber.Ctx) error {
-	id := c.Locals("user_id").(string)
-	user, err := h.service.GetProfile(id)
-	if err != nil {
-		return c.Status(404).JSON(fiber.Map{"error": "user not found"})
-	}
-	return c.JSON(user)
 }
 
 func (h *Handler) RefreshTokenH(c *fiber.Ctx) error {
