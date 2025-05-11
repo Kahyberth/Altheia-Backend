@@ -77,3 +77,60 @@ type MedicalPrescription struct {
 	UpdatedAt time.Time      `json:"updatedAt"`
 	DeletedAt gorm.DeletedAt `gorm:"index" json:"-"`
 }
+
+type Clinic struct {
+	ID        string         `gorm:"primaryKey" json:"id"`
+	Status    bool           `json:"status"`
+	CreatedAt time.Time      `json:"created_at"`
+	UserID    string         `gorm:"not null;index" json:"user_id"`
+	UpdatedAt time.Time      `json:"updated_at"`
+	DeletedAt gorm.DeletedAt `gorm:"index" json:"-"`
+
+	Physicians        *[]users.Physician    `gorm:"foreignKey:ClinicID" json:"physicians,omitempty"`
+	Receptionists     *[]users.Receptionist `gorm:"foreignKey:ClinicID" json:"receptionists,omitempty"`
+	ClinicInformation ClinicInformation     `gorm:"foreignKey:ClinicID;references:ID" json:"clinic_information,omitempty"`
+}
+
+type ClinicSchedule struct {
+	ID       string `gorm:"primaryKey" json:"id"`
+	ClinicID string `gorm:"not null" json:"clinic_id"`
+	Day      string `gorm:"not null" json:"day"`
+	Open     bool   `json:"open"`
+	From     string `json:"from"`
+	To       string `json:"to"`
+}
+
+type ClinicInformation struct {
+	ClinicID          string    `gorm:"primaryKey" json:"clinic_id"`
+	ClinicEmail       string    `json:"clinic_email"`
+	ClinicName        string    `json:"clinic_name"`
+	ClinicPhone       string    `json:"clinic_phone"`
+	ClinicDescription string    `json:"clinic_description"`
+	ClinicWebsite     string    `json:"clinic_website"`
+	EmployeeCount     int       `json:"employee_count"`
+	Services          []Service `gorm:"many2many:clinic_services;" json:"services,omitempty"`
+
+	Photos []Photo `gorm:"foreignKey:ClinicID" json:"photos,omitempty"`
+
+	Address    string  `json:"address"`
+	City       string  `json:"city"`
+	State      string  `json:"state"`
+	PostalCode *string `json:"postal_code,omitempty"`
+	Country    string  `json:"country"`
+}
+
+type EPS struct {
+	ID   string `gorm:"primaryKey" json:"id"`
+	Name string `gorm:"unique" json:"name"`
+}
+
+type Service struct {
+	ID   string `gorm:"primaryKey" json:"id"`
+	Name string `gorm:"unique" json:"name"`
+}
+
+type Photo struct {
+	ID       string `gorm:"primaryKey" json:"id"`
+	URL      string `json:"url"`
+	ClinicID string `json:"clinic_id"`
+}

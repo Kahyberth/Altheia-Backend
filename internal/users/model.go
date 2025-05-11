@@ -20,8 +20,9 @@ type User struct {
 	DeletedAt      gorm.DeletedAt `gorm:"index" json:"-"`
 	LastLogin      time.Time      `json:"lastLogin"`
 
-	Patient   Patient   `gorm:"foreignKey:UserID;references:ID" json:"patient,omitempty"`
-	Physician Physician `gorm:"foreignKey:UserID;references:ID" json:"physician,omitempty"`
+	Patient      Patient      `gorm:"foreignKey:UserID;references:ID" json:"patient,omitempty"`
+	Physician    Physician    `gorm:"foreignKey:UserID;references:ID" json:"physician,omitempty"`
+	Receptionist Receptionist `gorm:"foreignKey:UserID;references:ID" json:"receptionist,omitempty"`
 }
 
 type Patient struct {
@@ -42,7 +43,19 @@ type Physician struct {
 	PhysicianSpecialty string         `json:"physician_specialty"`
 	LicenseNumber      string         `json:"license_number"`
 	Status             bool           `json:"status"`
+	ClinicID           *string        `json:"clinic_id"`
 	CreatedAt          time.Time      `json:"createdAt"`
 	UpdatedAt          time.Time      `json:"updatedAt"`
 	DeletedAt          gorm.DeletedAt `gorm:"index" json:"-"`
+}
+
+type Receptionist struct {
+	ID           string         `gorm:"primaryKey" json:"id"`
+	UserID       string         `gorm:"not null;index" json:"user_id"`
+	EmployeeCode string         `json:"employee_code"`
+	ClinicID     *string        `json:"clinic_id"`
+	SupervisorID string         `gorm:"not null;index" json:"supervisor_id"`
+	CreatedAt    time.Time      `json:"createdAt"`
+	UpdatedAt    time.Time      `json:"updatedAt"`
+	DeletedAt    gorm.DeletedAt `gorm:"index" json:"-"`
 }

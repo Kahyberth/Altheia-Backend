@@ -18,6 +18,7 @@ func main() {
 		&users.User{},
 		&users.Patient{},
 		&users.Physician{},
+		&users.Receptionist{},
 	)
 	if err != nil {
 		return
