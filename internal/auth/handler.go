@@ -53,7 +53,9 @@ func (h *Handler) Login(c *fiber.Ctx) error {
 		return c.Status(400).JSON(fiber.Map{"error": "cannot parse JSON"})
 	}
 
-	accessToken, refreshToken, err := h.service.Login(data.Email, data.Password)
+	var user UserInfo
+
+	user, accessToken, refreshToken, err := h.service.Login(data.Email, data.Password)
 
 	if err != nil {
 		return c.Status(401).JSON(fiber.Map{"error": err.Error()})
@@ -82,7 +84,7 @@ func (h *Handler) Login(c *fiber.Ctx) error {
 	c.Cookie(&accessTokenCookie)
 	c.Cookie(&refreshTokenCookie)
 
-	return c.JSON(fiber.Map{"accessToken": accessToken, "refreshToken": refreshToken})
+	return c.JSON(fiber.Map{"accessToken": accessToken, "refreshToken": refreshToken, "User": user})
 }
 
 func (h *Handler) Profile(c *fiber.Ctx) error {
@@ -129,15 +131,15 @@ func (h *Handler) VerifyToken(c *fiber.Ctx) error {
 			"error": "Token no proporcionado",
 		})
 	}
-	data, err := h.service.verifyToken(token)
+	data, token, err := h.service.verifyToken(token)
 	if err != nil {
 		return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{
 			"error": "Token inválido o expirado",
 		})
 	}
-	fmt.Print("Se verifico el token!")
 	return c.JSON(fiber.Map{
-		"isValid":      true,
-		"access_token": data,
+		"isValid":  true,
+		"userInfo": data,
+		"token":    token,
 	})
 }
