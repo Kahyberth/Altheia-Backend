@@ -86,9 +86,9 @@ type Clinic struct {
 	UpdatedAt time.Time      `json:"updated_at"`
 	DeletedAt gorm.DeletedAt `gorm:"index" json:"-"`
 
-	Physicians        *[]users.Physician    `gorm:"foreignKey:ClinicID" json:"physicians,omitempty"`
-	Receptionists     *[]users.Receptionist `gorm:"foreignKey:ClinicID" json:"receptionists,omitempty"`
-	ClinicInformation ClinicInformation     `gorm:"foreignKey:ClinicID;references:ID" json:"clinic_information,omitempty"`
+	Physicians        []users.Physician    `gorm:"foreignKey:ClinicID" json:"physicians,omitempty"`
+	Receptionists     []users.Receptionist `gorm:"foreignKey:ClinicID" json:"receptionists,omitempty"`
+	ClinicInformation ClinicInformation    `gorm:"foreignKey:ClinicID;references:ID" json:"clinic_information,omitempty"`
 }
 
 type ClinicSchedule struct {

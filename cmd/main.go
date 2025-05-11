@@ -3,6 +3,7 @@ package main
 import (
 	"Altheia-Backend/config"
 	"Altheia-Backend/internal/auth"
+	"Altheia-Backend/internal/clinical"
 	"Altheia-Backend/internal/db"
 	"Altheia-Backend/internal/middleware"
 	"Altheia-Backend/internal/users"
@@ -15,10 +16,23 @@ import (
 func main() {
 	database := db.GetDB()
 	err := database.AutoMigrate(
+
+		&clinical.Clinic{},
+		&clinical.ClinicInformation{},
+		&clinical.ClinicSchedule{},
+		&clinical.Service{},
+		&clinical.Photo{},
+		&clinical.EPS{},
+
 		&users.User{},
 		&users.Patient{},
 		&users.Physician{},
 		&users.Receptionist{},
+
+		&clinical.MedicalHistory{},
+		&clinical.MedicalConsultation{},
+		&clinical.MedicalAppointment{},
+		&clinical.MedicalPrescription{},
 	)
 	if err != nil {
 		return
@@ -54,7 +68,6 @@ func main() {
 
 	// Auth routes
 	authGroup := app.Group("/auth")
-	authGroup.Post("/register", authHandler.Register)
 	authGroup.Post("/login", authHandler.Login)
 	authGroup.Post("/logout", authHandler.Logout)
 	authGroup.Get("/verify-token", authHandler.VerifyToken)
@@ -63,7 +76,6 @@ func main() {
 
 	profile := app.Group("/profile")
 	profile.Use(middleware.JWTProtected())
-	profile.Get("/", authHandler.Profile)
 
 	app.Listen(":" + config.GetEnv("PORT"))
 
