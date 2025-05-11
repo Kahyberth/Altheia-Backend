@@ -2,17 +2,17 @@ package auth
 
 import (
 	"Altheia-Backend/internal/mail"
-	"Altheia-Backend/internal/users/patient"
+	"Altheia-Backend/internal/users"
 	"Altheia-Backend/pkg/utils"
 	"errors"
 	"fmt"
-	"github.com/matoous/go-nanoid"
+	gonanoid "github.com/matoous/go-nanoid"
 )
 
 type Service interface {
-	RegisterPatient(user *User) error
+	Register(user *users.User) error
 	Login(email, password string) (UserInfo, string, string, error)
-	GetProfile(id string) (*User, error)
+	GetProfile(id string) (*users.User, error)
 	verifyToken(token string) (UserInfo, string, error)
 }
 
@@ -31,7 +31,7 @@ func NewService(r Repository) Service {
 	return &service{r}
 }
 
-func (s *service) RegisterPatient(user *User) error {
+func (s *service) Register(user *users.User) error {
 	hashed, _ := utils.HashPassword(user.Password)
 	nanoid, err := gonanoid.Nanoid()
 	patientNanoid, err := gonanoid.Nanoid()
@@ -41,23 +41,20 @@ func (s *service) RegisterPatient(user *User) error {
 	user.ID = nanoid
 	user.Password = hashed
 
-	newPatient := &patient.Patient{
-		ID:             patientNanoid,
-		UserID:         user.ID,
-		DocumentNumber: "",
-		DateOfBirth:    "",
-		Address:        "",
-		Eps:            "",
-		BloodType:      "",
+	user.Patient = users.Patient{
+		ID:          patientNanoid,
+		UserID:      user.ID,
+		DateOfBirth: "",
+		Address:     "",
+		Eps:         "",
+		BloodType:   "",
 	}
-
-	user.Patient = newPatient
 
 	newUser := s.repo.Create(user)
 
 	emailError := mail.SendWelcomeMessage(user.Name, []string{user.Email})
 	if emailError != nil {
-		return err
+		return emailError
 	}
 
 	return newUser
@@ -90,7 +87,7 @@ func (s *service) Login(email, password string) (UserInfo, string, string, error
 	return userInfo, accessToken, refreshToken, nil
 }
 
-func (s *service) GetProfile(id string) (*User, error) {
+func (s *service) GetProfile(id string) (*users.User, error) {
 	return s.repo.FindByID(id)
 }
 

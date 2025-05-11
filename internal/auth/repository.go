@@ -1,15 +1,15 @@
 package auth
 
 import (
-	"Altheia-Backend/internal/users/physician"
+	"Altheia-Backend/internal/users"
 	"fmt"
 	"gorm.io/gorm"
 )
 
 type Repository interface {
-	Create(user *User) error
-	FindByEmail(email string) (*User, error)
-	FindByID(id string) (*User, error)
+	Create(user *users.User) error
+	FindByEmail(email string) (*users.User, error)
+	FindByID(id string) (*users.User, error)
 }
 
 type UpdateInfo struct {
@@ -29,56 +29,23 @@ func NewRepository(db *gorm.DB) Repository {
 	return &repository{db}
 }
 
-func (r *repository) Create(user *User) error {
+func (r *repository) Create(user *users.User) error {
 	return r.db.Create(user).Error
 }
 
-func (r *repository) FindByEmail(email string) (*User, error) {
-	var user User
+func (r *repository) FindByEmail(email string) (*users.User, error) {
+	var user users.User
 	err := r.db.Where("email = ?", email).First(&user).Error
 	return &user, err
 }
 
-func (r *repository) FindByID(id string) (*User, error) {
-	var user User
+func (r *repository) FindByID(id string) (*users.User, error) {
+	var user users.User
 	fmt.Print("ID del usuario desde repository: ", id)
 	err := r.db.Where("id = ?", id).First(&user).Error
 	return &user, err
 }
 
-func (r *repository) Update(user *User) error {
+func (r *repository) Update(user *users.User) error {
 	return r.db.Save(user).Error
-}
-
-func (r *repository) FilterByIdPhysician(physicianID string) (physician.Physician, error) {
-	var physicianInfo physician.Physician
-	r.db.Where("id = ?", physicianID).First(&physicianInfo)
-	return physicianInfo, nil
-}
-
-func (r *repository) UpdatePhysician(user *physician.Physician) error {
-	return r.db.Save(user).Error
-}
-
-func (r *repository) UpdateUserAndPhysician(UserId string, Info UpdateInfo) error {
-	return r.db.Transaction(func(tx *gorm.DB) error {
-		if err := tx.Model(&User{}).Where("id = ?", UserId).
-			Updates(map[string]interface{}{
-				"name":     Info.Name,
-				"email":    Info.Email,
-				"password": Info.Password,
-				"gender":   Info.Gender,
-			}).Error; err != nil {
-		}
-
-		if err := tx.Model(&physician.Physician{}).Where("id = ?", UserId).
-			Updates(map[string]interface{}{
-				"physicianSpecialty": Info.PhysicianSpecialty,
-				"phone":              Info.Phone,
-			}).Error; err != nil {
-		}
-
-		return nil
-	})
-
 }

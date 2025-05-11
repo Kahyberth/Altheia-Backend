@@ -1,13 +1,14 @@
 package auth
 
 import (
+	"Altheia-Backend/internal/users"
 	"Altheia-Backend/pkg/utils"
 	"fmt"
 	"github.com/gofiber/fiber/v2"
 	"time"
 )
 
-type RegisterPatient struct {
+type RegisterInfo struct {
 	Name        string `json:"name"`
 	Email       string `json:"email"`
 	Password    string `json:"password"`
@@ -15,6 +16,7 @@ type RegisterPatient struct {
 	DateOfBirth string `json:"date_of_birth"`
 	Gender      string `json:"gender"`
 	Phone       string `json:"phone"`
+	CC          string `json:"cc"`
 }
 
 type Handler struct {
@@ -25,30 +27,31 @@ func NewHandler(s Service) *Handler {
 	return &Handler{s}
 }
 
-func (h *Handler) RegisterPatient(c *fiber.Ctx) error {
-	var user RegisterPatient
+func (h *Handler) Register(c *fiber.Ctx) error {
+	var user RegisterInfo
 	if err := c.BodyParser(&user); err != nil {
 		return c.Status(400).JSON(fiber.Map{"error": "cannot parse JSON"})
 	}
 
-	newUser := User{
-		Name:     user.Name,
-		Email:    user.Email,
-		Password: user.Password,
-		Rol:      user.Role,
-		Gender:   user.Gender,
-		Phone:    user.Phone,
-		Status:   true,
+	newUser := users.User{
+		Name:           user.Name,
+		Email:          user.Email,
+		Password:       user.Password,
+		Rol:            user.Role,
+		Gender:         user.Gender,
+		Phone:          user.Phone,
+		DocumentNumber: user.CC,
+		Status:         true,
 	}
 
-	if err := h.service.RegisterPatient(&newUser); err != nil {
+	if err := h.service.Register(&newUser); err != nil {
 		return c.Status(500).JSON(fiber.Map{"error": err.Error()})
 	}
 	return c.JSON(fiber.Map{"message": "registered successfully"})
 }
 
 func (h *Handler) Login(c *fiber.Ctx) error {
-	var data User
+	var data users.User
 	if err := c.BodyParser(&data); err != nil {
 		return c.Status(400).JSON(fiber.Map{"error": "cannot parse JSON"})
 	}

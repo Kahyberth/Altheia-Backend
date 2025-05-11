@@ -6,34 +6,34 @@ import (
 )
 
 type User struct {
-	ID        string         `gorm:"primaryKey" json:"id"`
-	Name      string         `json:"name"`
-	Email     string         `gorm:"unique" json:"email"`
-	Password  string         `json:"password"`
-	Rol       string         `json:"rol"`
-	Phone     string         `json:"phone"`
-	Status    bool           `json:"status"`
-	Gender    string         `json:"gender"`
-	CreatedAt time.Time      `json:"createdAt"`
-	UpdatedAt time.Time      `json:"updatedAt"`
-	DeletedAt gorm.DeletedAt `gorm:"index" json:"-"`
-	LastLogin time.Time      `json:"lastLogin"`
+	ID             string         `gorm:"primaryKey" json:"id"`
+	Name           string         `json:"name"`
+	Email          string         `gorm:"unique" json:"email"`
+	Password       string         `json:"password"`
+	Rol            string         `json:"rol"`
+	Phone          string         `json:"phone"`
+	DocumentNumber string         `json:"document_number"`
+	Status         bool           `json:"status"`
+	Gender         string         `json:"gender"`
+	CreatedAt      time.Time      `json:"createdAt"`
+	UpdatedAt      time.Time      `json:"updatedAt"`
+	DeletedAt      gorm.DeletedAt `gorm:"index" json:"-"`
+	LastLogin      time.Time      `json:"lastLogin"`
 
 	Patient   Patient   `gorm:"foreignKey:UserID;references:ID" json:"patient,omitempty"`
 	Physician Physician `gorm:"foreignKey:UserID;references:ID" json:"physician,omitempty"`
 }
 
 type Patient struct {
-	ID             string         `gorm:"primaryKey" json:"id"`
-	UserID         string         `gorm:"not null;index" json:"user_id"`
-	DocumentNumber string         `json:"document_number"`
-	DateOfBirth    string         `json:"date_of_birth"`
-	Address        string         `json:"address"`
-	Eps            string         `json:"eps"`
-	BloodType      string         `json:"blood_type"`
-	CreatedAt      time.Time      `json:"createdAt"`
-	UpdatedAt      time.Time      `json:"updatedAt"`
-	DeletedAt      gorm.DeletedAt `gorm:"index" json:"-"`
+	ID          string         `gorm:"primaryKey" json:"id"`
+	UserID      string         `gorm:"not null;index" json:"user_id"`
+	DateOfBirth string         `json:"date_of_birth"`
+	Address     string         `json:"address"`
+	Eps         string         `json:"eps"`
+	BloodType   string         `json:"blood_type"`
+	CreatedAt   time.Time      `json:"createdAt"`
+	UpdatedAt   time.Time      `json:"updatedAt"`
+	DeletedAt   gorm.DeletedAt `gorm:"index" json:"-"`
 }
 
 type Physician struct {

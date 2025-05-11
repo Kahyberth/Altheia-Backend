@@ -5,8 +5,7 @@ import (
 	"Altheia-Backend/internal/auth"
 	"Altheia-Backend/internal/db"
 	"Altheia-Backend/internal/middleware"
-	"Altheia-Backend/internal/users/patient"
-	"Altheia-Backend/internal/users/physician"
+	"Altheia-Backend/internal/users"
 	"github.com/gofiber/fiber/v2"
 	"github.com/gofiber/fiber/v2/middleware/cors"
 	"os"
@@ -15,9 +14,9 @@ import (
 func main() {
 	database := db.GetDB()
 	err := database.AutoMigrate(
-		&auth.User{},
-		&patient.Patient{},
-		&physician.Physician{},
+		&users.User{},
+		&users.Patient{},
+		&users.Physician{},
 	)
 	if err != nil {
 		return
@@ -38,7 +37,7 @@ func main() {
 	}))
 
 	authGroup := app.Group("/auth")
-	authGroup.Post("/register", authHandler.RegisterPatient)
+	authGroup.Post("/register", authHandler.Register)
 	authGroup.Post("/login", authHandler.Login)
 	authGroup.Post("/logout", authHandler.Logout)
 	authGroup.Get("/verify-token", authHandler.VerifyToken)
