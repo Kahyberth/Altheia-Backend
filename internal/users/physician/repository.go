@@ -14,6 +14,7 @@ type Repository interface {
 	Delete(physician users.Physician) error
 	SoftDelete(physician users.Physician) error
 	GetAllPhysicians() ([]users.Physician, error)
+	GetUserByID(id string) (users.User, error)
 }
 
 type repository struct {
@@ -72,4 +73,13 @@ func (r *repository) UpdatePhysicianWithUser(physician users.Physician, userUpda
 
 		return nil
 	})
+}
+
+func (r *repository) GetUserByID(id string) (users.User, error) {
+	var user users.User
+	err := r.db.Where("id = ?", id).First(&user).Error
+	if err != nil {
+		return users.User{}, err
+	}
+	return user, nil
 }

@@ -1,10 +1,10 @@
 package clinical
 
 import (
-	"Altheia-Backend/internal/users/patient"
-	"Altheia-Backend/internal/users/physician"
-	"gorm.io/gorm"
+	"Altheia-Backend/internal/users"
 	"time"
+
+	"gorm.io/gorm"
 )
 
 type MedicalHistory struct {
@@ -17,7 +17,7 @@ type MedicalHistory struct {
 	Observations  string    `json:"observations"`
 	LastUpdate    time.Time `json:"last_update"`
 
-	Patient       patient.Patient       `gorm:"foreignKey:PatientId"`
+	Patient       users.Patient         `gorm:"foreignKey:PatientId"`
 	Consultations []MedicalConsultation `gorm:"foreignKey:MedicalHistoryId"`
 
 	CreatedAt time.Time      `json:"createdAt"`
@@ -36,7 +36,7 @@ type MedicalConsultation struct {
 	Notes            string    `json:"notes"`
 
 	MedicalHistory MedicalHistory        `gorm:"foreignKey:MedicalHistoryId"`
-	Physician      physician.Physician   `gorm:"foreignKey:PhysicianId"`
+	Physician      users.Physician       `gorm:"foreignKey:PhysicianId"`
 	Prescriptions  []MedicalPrescription `gorm:"foreignKey:ConsultationId"`
 
 	CreatedAt time.Time      `json:"createdAt"`
@@ -53,8 +53,8 @@ type MedicalAppointment struct {
 	Reason      string    `json:"reason"`
 	Remarks     string    `json:"remarks"`
 
-	Patient   patient.Patient     `gorm:"foreignKey:PatientId"`
-	Physician physician.Physician `gorm:"foreignKey:PhysicianId"`
+	Patient   users.Patient   `gorm:"foreignKey:PatientId"`
+	Physician users.Physician `gorm:"foreignKey:PhysicianId"`
 
 	CreatedAt time.Time      `json:"createdAt"`
 	UpdatedAt time.Time      `json:"updatedAt"`
