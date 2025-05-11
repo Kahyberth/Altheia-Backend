@@ -1,8 +1,8 @@
 package clinical
 
 import (
-	"Altheia-Backend/internal/patient"
-	"Altheia-Backend/internal/physician"
+	"Altheia-Backend/internal/users/patient"
+	"Altheia-Backend/internal/users/physician"
 	"gorm.io/gorm"
 	"time"
 )

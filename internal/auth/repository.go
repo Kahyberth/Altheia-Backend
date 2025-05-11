@@ -1,7 +1,8 @@
 package auth
 
 import (
-	"Altheia-Backend/internal/physician"
+	"Altheia-Backend/internal/users/physician"
+	"fmt"
 	"gorm.io/gorm"
 )
 
@@ -40,7 +41,8 @@ func (r *repository) FindByEmail(email string) (*User, error) {
 
 func (r *repository) FindByID(id string) (*User, error) {
 	var user User
-	err := r.db.First(&user, id).Error
+	fmt.Print("ID del usuario desde repository: ", id)
+	err := r.db.Where("id = ?", id).First(&user).Error
 	return &user, err
 }
 
