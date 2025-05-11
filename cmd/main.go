@@ -6,6 +6,7 @@ import (
 	"Altheia-Backend/internal/db"
 	"Altheia-Backend/internal/middleware"
 	"Altheia-Backend/internal/users"
+	"Altheia-Backend/internal/users/physician"
 	"github.com/gofiber/fiber/v2"
 	"github.com/gofiber/fiber/v2/middleware/cors"
 	"os"
@@ -28,6 +29,11 @@ func main() {
 	authService := auth.NewService(authRepo)
 	authHandler := auth.NewHandler(authService)
 
+	// Patient handler
+	patientRepo := physician.NewRepository(database)
+	patientService := physician.NewService(patientRepo)
+	patientHandler := physician.NewHandler(patientService)
+
 	app := fiber.New()
 	app.Use(cors.New(cors.Config{
 		AllowOrigins:     client,
@@ -36,6 +42,16 @@ func main() {
 		AllowCredentials: true,
 	}))
 
+	// Routes
+
+	// Physician routes
+	physicianGroup := app.Group("/physician")
+	//physicianGroup.Use(middleware.JWTProtected())
+	physicianGroup.Post("/register", patientHandler.RegisterPhysician)
+	//physicianGroup.Put("/update/:id", patientHandler.UpdatePhysician)
+	//physicianGroup.Get("/get/:id", patientHandler.GetPhysicianByID)
+
+	// Auth routes
 	authGroup := app.Group("/auth")
 	authGroup.Post("/register", authHandler.Register)
 	authGroup.Post("/login", authHandler.Login)
