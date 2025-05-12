@@ -63,8 +63,8 @@ func main() {
 	physicianGroup := app.Group("/physician")
 	//physicianGroup.Use(middleware.JWTProtected())
 	physicianGroup.Post("/register", patientHandler.RegisterPhysician)
-	//physicianGroup.Put("/update/:id", patientHandler.UpdatePhysician)
-	//physicianGroup.Get("/get/:id", patientHandler.GetPhysicianByID)
+	physicianGroup.Patch("/update/:id", patientHandler.UpdatePhysician)
+	physicianGroup.Get("/getAll/", patientHandler.GetAllPhysiciansPaginated)
 
 	// Auth routes
 	authGroup := app.Group("/auth")

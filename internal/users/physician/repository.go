@@ -37,7 +37,7 @@ func (r *repository) UpdateUserAndPhysician(UserId string, Info UpdatePhysicianI
 
 		if err := tx.Model(&users.Physician{}).Where("id = ?", UserId).
 			Updates(map[string]interface{}{
-				"physicianSpecialty": Info.PhysicianSpecialty,
+				"physician_specialty": Info.PhysicianSpecialty,
 			}).Error; err != nil {
 		}
 
