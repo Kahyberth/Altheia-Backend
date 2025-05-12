@@ -7,6 +7,7 @@ import (
 	"Altheia-Backend/internal/db"
 	"Altheia-Backend/internal/middleware"
 	"Altheia-Backend/internal/users"
+	"Altheia-Backend/internal/users/patient"
 	"Altheia-Backend/internal/users/physician"
 	"github.com/gofiber/fiber/v2"
 	"github.com/gofiber/fiber/v2/middleware/cors"
@@ -45,9 +46,14 @@ func main() {
 	authHandler := auth.NewHandler(authService)
 
 	// Patient handler
-	patientRepo := physician.NewRepository(database)
-	patientService := physician.NewService(patientRepo)
-	patientHandler := physician.NewHandler(patientService)
+	patientRepo := patient.NewRepository(database)
+	patientService := patient.NewService(patientRepo)
+	patientHandler := patient.NewHandler(patientService)
+
+	// Physician handler
+	physicianRepo := physician.NewRepository(database)
+	physicianService := physician.NewService(physicianRepo)
+	physicianHandler := physician.NewHandler(physicianService)
 
 	//Create Clinic handler
 	clinicRepo := clinical.NewRepository(database)
@@ -67,15 +73,22 @@ func main() {
 	// Physician routes
 	physicianGroup := app.Group("/physician")
 	//physicianGroup.Use(middleware.JWTProtected())
-	physicianGroup.Post("/register", patientHandler.RegisterPhysician)
-	physicianGroup.Patch("/update/:id", patientHandler.UpdatePhysician)
-	physicianGroup.Get("/getAll/", patientHandler.GetAllPhysiciansPaginated)
+	physicianGroup.Post("/register", physicianHandler.RegisterPhysician)
+	physicianGroup.Patch("/update/:id", physicianHandler.UpdatePhysician)
+	physicianGroup.Get("/getAll/", physicianHandler.GetAllPhysiciansPaginated)
 
 	//Clinical routes
 	clinicGroup := app.Group("/clinic")
 	clinicGroup.Post("/register", clinicHandler.CreateClinical)
 	clinicGroup.Post("/create-eps", clinicHandler.CreateEps)
 	clinicGroup.Get("/get-eps", clinicHandler.GetAllEps)
+
+	//Patient routes
+	patientGroup := app.Group("/patient")
+	patientGroup.Post("/register", patientHandler.RegisterPatient)
+	patientGroup.Get("/getAll", patientHandler.GetAllPatientsPaginated)
+	patientGroup.Patch("/update/:id", patientHandler.UpdatePatient)
+	patientGroup.Post("/delete/:id", patientHandler.SoftDeletePatient)
 
 	// Auth routes
 	authGroup := app.Group("/auth")
