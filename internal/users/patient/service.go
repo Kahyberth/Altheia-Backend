@@ -87,7 +87,7 @@ func (s *service) SoftDeletePatient(userId string) error {
 }
 
 func (s *service) GetAllPatientsPaginated(limit, page int) (users.Pagination, error) {
-	patients, err := s.repository.GetAllPatientsPaginated(page, limit)
+	patients, err := s.repository.GetAllPatientsPaginated(limit, page)
 	if err != nil {
 		return users.Pagination{}, err
 	}
