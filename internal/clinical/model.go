@@ -101,22 +101,22 @@ type ClinicSchedule struct {
 }
 
 type ClinicInformation struct {
-	ClinicID          string    `gorm:"primaryKey" json:"clinic_id"`
-	ClinicEmail       string    `json:"clinic_email"`
-	ClinicName        string    `json:"clinic_name"`
-	ClinicPhone       string    `json:"clinic_phone"`
-	ClinicDescription string    `json:"clinic_description"`
-	ClinicWebsite     string    `json:"clinic_website"`
-	EmployeeCount     int       `json:"employee_count"`
-	Services          []Service `gorm:"many2many:clinic_services;" json:"services,omitempty"`
+	ClinicID          string     `gorm:"primaryKey" json:"clinic_id"`
+	ClinicEmail       string     `json:"clinic_email"`
+	ClinicName        string     `json:"clinic_name"`
+	ClinicPhone       string     `json:"clinic_phone"`
+	ClinicDescription string     `json:"clinic_description"`
+	ClinicWebsite     string     `json:"clinic_website"`
+	EmployeeCount     int        `json:"employee_count"`
+	Services          []Services `gorm:"many2many:clinic_services;" json:"services,omitempty"`
 
 	Photos []Photo `gorm:"foreignKey:ClinicID" json:"photos,omitempty"`
 
-	Address    string  `json:"address"`
-	City       string  `json:"city"`
-	State      string  `json:"state"`
-	PostalCode *string `json:"postal_code,omitempty"`
-	Country    string  `json:"country"`
+	Address    string `json:"address"`
+	City       string `json:"city"`
+	State      string `json:"state"`
+	PostalCode string `json:"postal_code,omitempty"`
+	Country    string `json:"country"`
 }
 
 type EPS struct {
@@ -124,7 +124,7 @@ type EPS struct {
 	Name string `gorm:"unique" json:"name"`
 }
 
-type Service struct {
+type Services struct {
 	ID   string `gorm:"primaryKey" json:"id"`
 	Name string `gorm:"unique" json:"name"`
 }

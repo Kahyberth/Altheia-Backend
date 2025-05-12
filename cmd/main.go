@@ -20,7 +20,7 @@ func main() {
 		&clinical.Clinic{},
 		&clinical.ClinicInformation{},
 		&clinical.ClinicSchedule{},
-		&clinical.Service{},
+		&clinical.Services{},
 		&clinical.Photo{},
 		&clinical.EPS{},
 
@@ -49,6 +49,11 @@ func main() {
 	patientService := physician.NewService(patientRepo)
 	patientHandler := physician.NewHandler(patientService)
 
+	//Create Clinic handler
+	clinicRepo := clinical.NewRepository(database)
+	clinicService := clinical.NewService(clinicRepo)
+	clinicHandler := clinical.NewHandler(clinicService)
+
 	app := fiber.New()
 	app.Use(cors.New(cors.Config{
 		AllowOrigins:     client,
@@ -65,6 +70,12 @@ func main() {
 	physicianGroup.Post("/register", patientHandler.RegisterPhysician)
 	physicianGroup.Patch("/update/:id", patientHandler.UpdatePhysician)
 	physicianGroup.Get("/getAll/", patientHandler.GetAllPhysiciansPaginated)
+
+	//Clinical routes
+	clinicGroup := app.Group("/clinic")
+	clinicGroup.Post("/register", clinicHandler.CreateClinical)
+	clinicGroup.Post("/create-eps", clinicHandler.CreateEps)
+	clinicGroup.Get("/get-eps", clinicHandler.GetAllEps)
 
 	// Auth routes
 	authGroup := app.Group("/auth")
