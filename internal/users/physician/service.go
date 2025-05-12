@@ -10,23 +10,11 @@ import (
 )
 
 type Service interface {
-	RegisterPhysician(physician BasicPhysicianInfo) error
-	UpdatePhysician(physician users.Physician) error
-	DeletePhysician(physician users.Physician) error
+	RegisterPhysician(physician CreatePhysicianInfo) error
+	UpdatePhysician(userId string, physician UpdatePhysicianInfo) error
+	SoftDeletePhysician(userId string) error
+	GetAllPhysiciansPaginated(page, limit int) (users.Pagination, error)
 	GetPhysicianByID(id string) (users.Physician, error)
-	GetAllPhysicians() ([]users.Physician, error)
-}
-
-type BasicPhysicianInfo struct {
-	Name                string `json:"name"`
-	Email               string `json:"email"`
-	Password            string `json:"password"`
-	Gender              string `json:"gender"`
-	Phone               string `json:"phone"`
-	DocumentNumber      string `json:"document_number"`
-	DateOfBirth         string `json:"date_of_birth"`
-	PhysicianSpeciality string `json:"physician_specialty"`
-	LicenseNumber       string `json:"license_number"`
 }
 
 type service struct {
@@ -37,7 +25,7 @@ func NewService(r Repository) Service {
 	return &service{r}
 }
 
-func (s *service) RegisterPhysician(physician BasicPhysicianInfo) error {
+func (s *service) RegisterPhysician(physician CreatePhysicianInfo) error {
 	nanoid, _ := gonanoid.Nanoid()
 	hashed, _ := utils.HashPassword(physician.Password)
 	physicianNanoid, _ := gonanoid.Nanoid()
@@ -73,18 +61,40 @@ func (s *service) RegisterPhysician(physician BasicPhysicianInfo) error {
 	return newPhysician
 }
 
-func (s *service) UpdatePhysician(physician users.Physician) error {
-	return s.repo.Update(physician)
+func (s *service) UpdatePhysician(userId string, physicianData UpdatePhysicianInfo) error {
+	hashed, _ := utils.HashPassword(physicianData.Password)
+
+	updatedPhysician := UpdatePhysicianInfo{
+		Name:               physicianData.Name,
+		Password:           hashed,
+		Phone:              physicianData.Phone,
+		PhysicianSpecialty: physicianData.PhysicianSpecialty,
+	}
+
+	physician := s.repo.UpdateUserAndPhysician(userId, updatedPhysician)
+
+	return physician
+
 }
 
-func (s *service) DeletePhysician(physician users.Physician) error {
-	return s.repo.Delete(physician)
+func (s *service) SoftDeletePhysician(userId string) error {
+	err := s.repo.SoftDelete(userId)
+	if err != nil {
+		return err
+	}
+
+	return nil
+
 }
 
 func (s *service) GetPhysicianByID(id string) (users.Physician, error) {
 	return s.repo.GetPhysicianByID(id)
 }
 
-func (s *service) GetAllPhysicians() ([]users.Physician, error) {
-	return s.repo.GetAllPhysicians()
+func (s *service) GetAllPhysiciansPaginated(page, limit int) (users.Pagination, error) {
+	physicians, err := s.repo.GetAllPhysiciansPaginated(page, limit)
+	if err != nil {
+		return users.Pagination{}, err
+	}
+	return physicians, nil
 }

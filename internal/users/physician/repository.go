@@ -8,12 +8,10 @@ import (
 
 type Repository interface {
 	Create(user *users.User) error
-	Update(physician users.Physician) error
 	GetPhysicianByID(id string) (users.Physician, error)
-	UpdatePhysicianWithUser(physician users.Physician, userUpdates map[string]interface{}) error
-	Delete(physician users.Physician) error
-	SoftDelete(physician users.Physician) error
-	GetAllPhysicians() ([]users.Physician, error)
+	UpdateUserAndPhysician(UserId string, Info UpdatePhysicianInfo) error
+	GetAllPhysiciansPaginated(page, limit int) (users.Pagination, error)
+	SoftDelete(userId string) error
 	GetUserByID(id string) (users.User, error)
 }
 
@@ -27,16 +25,36 @@ func (r *repository) Create(user *users.User) error {
 	return r.db.Create(user).Error
 }
 
-func (r *repository) Update(physician users.Physician) error {
-	return r.db.Save(physician).Error
+func (r *repository) UpdateUserAndPhysician(UserId string, Info UpdatePhysicianInfo) error {
+	return r.db.Transaction(func(tx *gorm.DB) error {
+		if err := tx.Model(&users.User{}).Where("id = ?", UserId).
+			Updates(map[string]interface{}{
+				"name":     Info.Name,
+				"password": Info.Password,
+				"phone":    Info.Phone,
+			}).Error; err != nil {
+		}
+
+		if err := tx.Model(&users.Physician{}).Where("id = ?", UserId).
+			Updates(map[string]interface{}{
+				"physicianSpecialty": Info.PhysicianSpecialty,
+			}).Error; err != nil {
+		}
+
+		return nil
+	})
+
 }
 
-func (r *repository) Delete(physician users.Physician) error {
-	return r.db.Delete(physician).Error
-}
-
-func (r *repository) SoftDelete(physician users.Physician) error {
-	return r.db.Delete(physician).Update("deleted_at", time.Now()).Error
+func (r *repository) SoftDelete(userId string) error {
+	physician := users.Physician{
+		DeletedAt: gorm.DeletedAt{
+			Time:  time.Now(),
+			Valid: true,
+		},
+		Status: false,
+	}
+	return r.db.Model(&users.Physician{}).Where("id = ?", userId).Updates(physician).Error
 }
 
 func (r *repository) GetPhysicianByID(id string) (users.Physician, error) {
@@ -48,31 +66,34 @@ func (r *repository) GetPhysicianByID(id string) (users.Physician, error) {
 	return physician, nil
 }
 
-func (r *repository) GetAllPhysicians() ([]users.Physician, error) {
+func (r *repository) GetAllPhysiciansPaginated(page, limit int) (users.Pagination, error) {
+
 	var physicians []users.Physician
-	err := r.db.Find(&physicians).Error
-	if err != nil {
-		return nil, err
+	var totalRows int64
+
+	pagination := users.Pagination{
+		Limit: limit,
+		Page:  page,
 	}
-	return physicians, nil
-}
 
-func (r *repository) UpdatePhysicianWithUser(physician users.Physician, userUpdates map[string]interface{}) error {
-	return r.db.Transaction(func(tx *gorm.DB) error {
+	offset := (pagination.Page - 1) * pagination.Limit
 
-		if err := tx.Save(physician).Error; err != nil {
-			return err
-		}
+	// Obtener total de registros
+	r.db.Model(&users.Physician{}).Count(&totalRows)
 
-		// If there are user updates, update the user table
-		if len(userUpdates) > 0 {
-			if err := tx.Table("users").Where("id = ?", physician.UserID).Updates(userUpdates).Error; err != nil {
-				return err
-			}
-		}
+	// Obtener registros paginados
+	err := r.db.Limit(pagination.Limit).
+		Offset(offset).
+		Find(&physicians).Error
 
-		return nil
-	})
+	if err != nil {
+		return users.Pagination{}, err
+	}
+
+	pagination.Total = totalRows
+	pagination.Result = physicians
+
+	return pagination, nil
 }
 
 func (r *repository) GetUserByID(id string) (users.User, error) {

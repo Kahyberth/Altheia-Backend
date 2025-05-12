@@ -32,6 +32,7 @@ type Patient struct {
 	Address     string         `json:"address"`
 	Eps         string         `json:"eps"`
 	BloodType   string         `json:"blood_type"`
+	Status      bool           `json:"status"`
 	CreatedAt   time.Time      `json:"createdAt"`
 	UpdatedAt   time.Time      `json:"updatedAt"`
 	DeletedAt   gorm.DeletedAt `gorm:"index" json:"-"`
@@ -50,12 +51,19 @@ type Physician struct {
 }
 
 type Receptionist struct {
-	ID           string         `gorm:"primaryKey" json:"id"`
-	UserID       string         `gorm:"not null;index" json:"user_id"`
-	EmployeeCode string         `json:"employee_code"`
-	ClinicID     *string        `json:"clinic_id"`
-	SupervisorID string         `gorm:"not null;index" json:"supervisor_id"`
-	CreatedAt    time.Time      `json:"createdAt"`
-	UpdatedAt    time.Time      `json:"updatedAt"`
-	DeletedAt    gorm.DeletedAt `gorm:"index" json:"-"`
+	ID        string         `gorm:"primaryKey" json:"id"`
+	UserID    string         `gorm:"not null;index" json:"user_id"`
+	ClinicID  *string        `json:"clinic_id"`
+	Status    bool           `json:"status"`
+	CreatedAt time.Time      `json:"createdAt"`
+	UpdatedAt time.Time      `json:"updatedAt"`
+	DeletedAt gorm.DeletedAt `gorm:"index" json:"-"`
+}
+
+type Pagination struct {
+	Limit  int         `json:"limit"`
+	Page   int         `json:"page"`
+	Sort   string      `json:"sort"`
+	Total  int64       `json:"total"`
+	Result interface{} `json:"result"`
 }
