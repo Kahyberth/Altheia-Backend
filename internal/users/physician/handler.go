@@ -58,3 +58,9 @@ func (h *Handler) GetAllPhysiciansPaginated(c *fiber.Ctx) error {
 
 	return c.JSON(result)
 }
+
+func (h *Handler) GetPhysicianById(c *fiber.Ctx) error {
+	id := c.Params("id")
+	user, _ := h.service.GetPhysicianByID(id)
+	return c.JSON(user)
+}

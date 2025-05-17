@@ -7,6 +7,7 @@ import (
 	"Altheia-Backend/internal/db"
 	"Altheia-Backend/internal/middleware"
 	"Altheia-Backend/internal/users"
+	"Altheia-Backend/internal/users/clinicOwner"
 	"Altheia-Backend/internal/users/patient"
 	"Altheia-Backend/internal/users/physician"
 	"github.com/gofiber/fiber/v2"
@@ -29,6 +30,7 @@ func main() {
 		&users.Patient{},
 		&users.Physician{},
 		&users.Receptionist{},
+		&users.ClinicOwner{},
 
 		&clinical.MedicalHistory{},
 		&clinical.MedicalConsultation{},
@@ -60,6 +62,11 @@ func main() {
 	clinicService := clinical.NewService(clinicRepo)
 	clinicHandler := clinical.NewHandler(clinicService)
 
+	//Clinic Owner handler
+	clinicOwnerRepo := clinicOwner.NewRepository(database)
+	clinicOwnerService := clinicOwner.NewService(clinicOwnerRepo)
+	clinicOwnerHandler := clinicOwner.NewHandler(clinicOwnerService)
+
 	app := fiber.New()
 	app.Use(cors.New(cors.Config{
 		AllowOrigins:     client,
@@ -76,6 +83,7 @@ func main() {
 	physicianGroup.Post("/register", physicianHandler.RegisterPhysician)
 	physicianGroup.Patch("/update/:id", physicianHandler.UpdatePhysician)
 	physicianGroup.Get("/getAll/", physicianHandler.GetAllPhysiciansPaginated)
+	physicianGroup.Get("/:id", physicianHandler.GetPhysicianById)
 
 	//Clinical routes
 	clinicGroup := app.Group("/clinic")
@@ -89,6 +97,10 @@ func main() {
 	patientGroup.Get("/getAll", patientHandler.GetAllPatientsPaginated)
 	patientGroup.Patch("/update/:id", patientHandler.UpdatePatient)
 	patientGroup.Post("/delete/:id", patientHandler.SoftDeletePatient)
+
+	// Clinic Owner Routes
+	clinicOwnerGroup := app.Group("/clinic-owner")
+	clinicOwnerGroup.Post("/register", clinicOwnerHandler.CreateClinicOwner)
 
 	// Auth routes
 	authGroup := app.Group("/auth")

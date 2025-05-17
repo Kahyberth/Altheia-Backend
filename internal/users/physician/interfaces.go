@@ -1,5 +1,7 @@
 package physician
 
+import "time"
+
 type CreatePhysicianInfo struct {
 	Name                string `json:"name"`
 	Email               string `json:"email"`
@@ -16,4 +18,16 @@ type UpdatePhysicianInfo struct {
 	Password           string `json:"password"`
 	Phone              string `json:"phone"`
 	PhysicianSpecialty string `json:"physician_specialty"`
+}
+
+type ResultPhysicians struct {
+	PhysicianID        string    `json:"physician_id"`
+	Name               string    `json:"name"`
+	Email              string    `json:"email"`
+	Rol                string    `json:"rol"`
+	UserStatus         bool      `json:"user_status"`
+	Gender             string    `json:"gender"`
+	LastLogin          time.Time `json:"last_login"`
+	PhysicianSpecialty string    `json:"physician_specialty"`
+	PhysicianStatus    bool      `json:"physician_status"`
 }

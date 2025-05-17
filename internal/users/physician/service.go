@@ -3,6 +3,7 @@ package physician
 import (
 	"Altheia-Backend/internal/users"
 	"Altheia-Backend/pkg/utils"
+	"fmt"
 	"gorm.io/gorm"
 	"time"
 
@@ -14,7 +15,7 @@ type Service interface {
 	UpdatePhysician(userId string, physician UpdatePhysicianInfo) error
 	SoftDeletePhysician(userId string) error
 	GetAllPhysiciansPaginated(page, limit int) (users.Pagination, error)
-	GetPhysicianByID(id string) (users.Physician, error)
+	GetPhysicianByID(id string) ([]ResultPhysicians, error)
 }
 
 type service struct {
@@ -87,8 +88,13 @@ func (s *service) SoftDeletePhysician(userId string) error {
 
 }
 
-func (s *service) GetPhysicianByID(id string) (users.Physician, error) {
-	return s.repo.GetPhysicianByID(id)
+func (s *service) GetPhysicianByID(id string) ([]ResultPhysicians, error) {
+	fmt.Print("ID del usuario desde repository: ", id)
+	results, err := s.repo.GetPhysicianByID(id)
+	if err != nil {
+		return nil, err
+	}
+	return results, nil
 }
 
 func (s *service) GetAllPhysiciansPaginated(page, limit int) (users.Pagination, error) {

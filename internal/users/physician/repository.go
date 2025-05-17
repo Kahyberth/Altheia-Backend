@@ -8,11 +8,10 @@ import (
 
 type Repository interface {
 	Create(user *users.User) error
-	GetPhysicianByID(id string) (users.Physician, error)
 	UpdateUserAndPhysician(UserId string, Info UpdatePhysicianInfo) error
 	GetAllPhysiciansPaginated(page, limit int) (users.Pagination, error)
 	SoftDelete(userId string) error
-	GetUserByID(id string) (users.User, error)
+	GetPhysicianByID(id string) ([]ResultPhysicians, error)
 }
 
 type repository struct {
@@ -57,15 +56,6 @@ func (r *repository) SoftDelete(userId string) error {
 	return r.db.Model(&users.Physician{}).Where("id = ?", userId).Updates(physician).Error
 }
 
-func (r *repository) GetPhysicianByID(id string) (users.Physician, error) {
-	var physician users.Physician
-	err := r.db.Where("id = ?", id).First(&physician).Error
-	if err != nil {
-		return users.Physician{}, err
-	}
-	return physician, nil
-}
-
 func (r *repository) GetAllPhysiciansPaginated(page, limit int) (users.Pagination, error) {
 
 	var physicians []users.Physician
@@ -96,11 +86,18 @@ func (r *repository) GetAllPhysiciansPaginated(page, limit int) (users.Paginatio
 	return pagination, nil
 }
 
-func (r *repository) GetUserByID(id string) (users.User, error) {
-	var user users.User
-	err := r.db.Where("id = ?", id).First(&user).Error
+func (r *repository) GetPhysicianByID(id string) ([]ResultPhysicians, error) {
+	var result []ResultPhysicians
+
+	err := r.db.Table("users").
+		Select("users.id, users.name, users.email, users.rol, users.status, users.gender, users.last_login, physicians.physician_specialty").
+		Joins("INNER JOIN physicians ON physicians.user_id = users.id").
+		Where("users.id = ?", id).
+		Scan(&result).Error
+
 	if err != nil {
-		return users.User{}, err
+		return nil, err
 	}
-	return user, nil
+
+	return result, nil
 }

@@ -23,6 +23,7 @@ type User struct {
 	Patient      Patient      `gorm:"foreignKey:UserID;references:ID" json:"patient,omitempty"`
 	Physician    Physician    `gorm:"foreignKey:UserID;references:ID" json:"physician,omitempty"`
 	Receptionist Receptionist `gorm:"foreignKey:UserID;references:ID" json:"receptionist,omitempty"`
+	ClinicOwner  ClinicOwner  `gorm:"foreignKey:UserID;references:ID" json:"clinic_owner,omitempty"`
 }
 
 type Patient struct {
@@ -66,4 +67,14 @@ type Pagination struct {
 	Sort   string      `json:"sort"`
 	Total  int64       `json:"total"`
 	Result interface{} `json:"result"`
+}
+
+type ClinicOwner struct {
+	ID        string         `gorm:"primaryKey" json:"id"`
+	UserID    string         `gorm:"not null;index" json:"user_id"`
+	ClinicID  string         `gorm:"not null;index" json:"clinic_id"`
+	Status    bool           `json:"status"`
+	CreatedAt time.Time      `json:"createdAt"`
+	UpdatedAt time.Time      `json:"updatedAt"`
+	DeletedAt gorm.DeletedAt `gorm:"index" json:"-"`
 }

@@ -25,8 +25,9 @@ func NewRepository(db *gorm.DB) Repository {
 
 func (r *repository) CreateClinic(createClinicDto CreateClinicDTO) error {
 
-	tempUserPassword, _ := utils.GeneratePassword(7)
+	tempUserPassword, _ := utils.GeneratePassword(10)
 	nanoid, _ := gonanoid.Nanoid()
+	fmt.Println(tempUserPassword)
 	hashed, _ := utils.HashPassword(tempUserPassword)
 
 	err := r.db.Transaction(func(tx *gorm.DB) error {
@@ -36,7 +37,7 @@ func (r *repository) CreateClinic(createClinicDto CreateClinicDTO) error {
 			Name:           createClinicDto.OwnerName,
 			Email:          createClinicDto.OwnerEmail,
 			Password:       hashed,
-			Rol:            "Admin",
+			Rol:            "staff",
 			Phone:          createClinicDto.OwnerPhone,
 			DocumentNumber: createClinicDto.OwenerDocumentNumber,
 			Status:         false,
@@ -48,12 +49,7 @@ func (r *repository) CreateClinic(createClinicDto CreateClinicDTO) error {
 			Patient:        users.Patient{},
 			Physician:      users.Physician{},
 			Receptionist:   users.Receptionist{},
-		}
-
-		userError := tx.Create(newUser).Error
-
-		if userError != nil {
-			return userError
+			ClinicOwner:    users.ClinicOwner{},
 		}
 
 		var services []Services
@@ -99,6 +95,24 @@ func (r *repository) CreateClinic(createClinicDto CreateClinicDTO) error {
 				Country:           createClinicDto.Country,
 			},
 		}
+
+		clinicOwnerId, _ := gonanoid.Nanoid()
+		newUser.ClinicOwner = users.ClinicOwner{
+			ID:        clinicOwnerId,
+			UserID:    nanoid,
+			ClinicID:  newClinic.ID,
+			Status:    false,
+			CreatedAt: time.Time{},
+			UpdatedAt: time.Time{},
+			DeletedAt: gorm.DeletedAt{},
+		}
+
+		userError := tx.Create(newUser).Error
+
+		if userError != nil {
+			return userError
+		}
+
 		err := tx.Create(newClinic).Error
 		if err != nil {
 			return err
