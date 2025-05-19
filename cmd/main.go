@@ -22,7 +22,7 @@ func main() {
 		&clinical.Clinic{},
 		&clinical.ClinicInformation{},
 		&clinical.ClinicSchedule{},
-		&clinical.Services{},
+		&clinical.ServicesOffered{},
 		&clinical.Photo{},
 		&clinical.EPS{},
 
@@ -90,6 +90,8 @@ func main() {
 	clinicGroup.Post("/register", clinicHandler.CreateClinical)
 	clinicGroup.Post("/create-eps", clinicHandler.CreateEps)
 	clinicGroup.Get("/get-eps", clinicHandler.GetAllEps)
+	clinicGroup.Post("/create-services", clinicHandler.CreateServices)
+	clinicGroup.Get("/get-services", clinicHandler.GetAllServices)
 
 	//Patient routes
 	patientGroup := app.Group("/patient")
@@ -113,6 +115,6 @@ func main() {
 	profile := app.Group("/profile")
 	profile.Use(middleware.JWTProtected())
 
-	app.Listen(":" + config.GetEnv("PORT"))
+	_ = app.Listen(":" + config.GetEnv("PORT"))
 
 }

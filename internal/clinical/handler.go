@@ -64,3 +64,39 @@ func (h *Handler) GetAllEps(c *fiber.Ctx) error {
 
 	return c.JSON(eps)
 }
+
+func (h *Handler) CreateServices(c *fiber.Ctx) error {
+	var createService CreateServicesDto
+	if err := c.BodyParser(&createService); err != nil {
+		return c.Status(fiber.StatusUnprocessableEntity).JSON(fiber.Map{
+			"error": err.Error(),
+		})
+	}
+
+	createEpsError := h.service.CreateServicesOffered(createService)
+	if createEpsError != nil {
+		return createEpsError
+	}
+	return nil
+}
+
+func (h *Handler) GetAllServices(c *fiber.Ctx) error {
+	var servicesOffered []ServicesOffered
+	page, errPage := strconv.ParseInt(c.Query("page"), 10, 16)
+	pageSize, errSize := strconv.ParseInt(c.Query("size"), 10, 16)
+
+	if errPage != nil {
+		return errPage
+	}
+
+	if errSize != nil {
+		return errSize
+	}
+
+	servicesOffered, epsError := h.service.GetAllServicesOffered(int(page), int(pageSize))
+	if epsError != nil {
+		return epsError
+	}
+
+	return c.JSON(servicesOffered)
+}

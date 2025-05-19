@@ -1,12 +1,12 @@
 package clinical
 
 type CreateClinicDTO struct {
-	OwnerName            string `json:"owner_name"`
-	OwnerEmail           string `json:"owner_email"`
-	OwnerPhone           string `json:"owner_phone"`
-	OwnerPosition        string `json:"owner_position"`
-	OwenerDocumentNumber string `json:"owener_document_number"`
-	OwenerGender         string `json:"owener_gender"`
+	OwnerName           string `json:"owner_name"`
+	OwnerEmail          string `json:"owner_email"`
+	OwnerPhone          string `json:"owner_phone"`
+	OwnerPosition       string `json:"owner_position"`
+	OwnerDocumentNumber string `json:"owner_document_number"`
+	OwnerGender         string `json:"owner_gender"`
 
 	Name        string `json:"name"`
 	Email       string `json:"email"`
@@ -28,4 +28,8 @@ type CreateClinicDTO struct {
 
 type CreateEpsDto struct {
 	Eps []string `json:"eps"`
+}
+
+type CreateServicesDto struct {
+	ServicesOffered []string `json:"services_offered"`
 }

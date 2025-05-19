@@ -13,6 +13,8 @@ type Repository interface {
 	CreateClinic(createClinicDto CreateClinicDTO) error
 	CreateEps(epsDto CreateEpsDto) error
 	GetAllEps(page int, pagSize int) ([]EPS, error)
+	GetAllServices(page int, pagSize int) ([]ServicesOffered, error)
+	CreateServices(dto CreateServicesDto) error
 }
 
 type repository struct {
@@ -39,9 +41,9 @@ func (r *repository) CreateClinic(createClinicDto CreateClinicDTO) error {
 			Password:       hashed,
 			Rol:            "staff",
 			Phone:          createClinicDto.OwnerPhone,
-			DocumentNumber: createClinicDto.OwenerDocumentNumber,
+			DocumentNumber: createClinicDto.OwnerDocumentNumber,
 			Status:         false,
-			Gender:         createClinicDto.OwenerGender,
+			Gender:         createClinicDto.OwnerGender,
 			CreatedAt:      time.Time{},
 			UpdatedAt:      time.Time{},
 			DeletedAt:      gorm.DeletedAt{},
@@ -50,21 +52,6 @@ func (r *repository) CreateClinic(createClinicDto CreateClinicDTO) error {
 			Physician:      users.Physician{},
 			Receptionist:   users.Receptionist{},
 			ClinicOwner:    users.ClinicOwner{},
-		}
-
-		var services []Services
-		if createClinicDto.ServicesOffered != nil {
-			for _, name := range createClinicDto.ServicesOffered {
-				id, _ := gonanoid.Nanoid()
-				services = append(services, Services{
-					ID:   id,
-					Name: name,
-				})
-			}
-			if err := tx.Create(&services).Error; err != nil {
-				fmt.Println("Error creating clinic service")
-				return err
-			}
 		}
 
 		clinicNanoId, _ := gonanoid.Nanoid()
@@ -86,7 +73,8 @@ func (r *repository) CreateClinic(createClinicDto CreateClinicDTO) error {
 				ClinicDescription: createClinicDto.Description,
 				ClinicWebsite:     createClinicDto.Website,
 				EmployeeCount:     createClinicDto.MemberCount,
-				Services:          services,
+				ServicesOffered:   nil,
+				EpsOffered:        nil,
 				Photos:            nil,
 				Address:           createClinicDto.Address,
 				City:              createClinicDto.City,
@@ -108,7 +96,6 @@ func (r *repository) CreateClinic(createClinicDto CreateClinicDTO) error {
 		}
 
 		userError := tx.Create(newUser).Error
-
 		if userError != nil {
 			return userError
 		}
@@ -116,6 +103,40 @@ func (r *repository) CreateClinic(createClinicDto CreateClinicDTO) error {
 		err := tx.Create(newClinic).Error
 		if err != nil {
 			return err
+		}
+
+		var services []ServicesOffered
+		if len(createClinicDto.ServicesOffered) > 0 {
+			if servicesError := tx.
+				Where("id IN ?", createClinicDto.ServicesOffered).
+				Find(&services).Error; servicesError != nil {
+				return servicesError
+			}
+		}
+
+		if len(services) > 0 {
+			if clinicError := tx.Model(&newClinic.ClinicInformation).
+				Association("ServicesOffered").
+				Append(services); clinicError != nil {
+				return clinicError
+			}
+		}
+
+		var acceptedEps []EPS
+		if len(createClinicDto.AcceptedEPS) > 0 {
+			if epsError := tx.
+				Where("id IN ?", createClinicDto.AcceptedEPS).
+				Find(&acceptedEps).Error; epsError != nil {
+				return epsError
+			}
+		}
+
+		if len(acceptedEps) > 0 {
+			if clinicError := tx.Model(&newClinic.ClinicInformation).
+				Association("EpsOffered").
+				Append(acceptedEps); clinicError != nil {
+				return clinicError
+			}
 		}
 
 		return nil
@@ -145,9 +166,31 @@ func (r *repository) CreateEps(epsDto CreateEpsDto) error {
 	return nil
 }
 
+func (r *repository) CreateServices(dto CreateServicesDto) error {
+	var services []ServicesOffered
+	for _, name := range dto.ServicesOffered {
+		id, _ := gonanoid.Nanoid()
+		services = append(services, ServicesOffered{
+			ID:   id,
+			Name: name,
+		})
+	}
+	if err := r.db.Create(&services).Error; err != nil {
+		return err
+	}
+	return nil
+}
+
 func (r *repository) GetAllEps(page int, pagSize int) ([]EPS, error) {
 	var eps []EPS
 	offset := (page - 1) * pagSize
 	result := r.db.Limit(pagSize).Offset(offset).Find(&eps)
 	return eps, result.Error
+}
+
+func (r *repository) GetAllServices(page int, pagSize int) ([]ServicesOffered, error) {
+	var servicesOffered []ServicesOffered
+	offset := (page - 1) * pagSize
+	result := r.db.Limit(pagSize).Offset(offset).Find(&servicesOffered)
+	return servicesOffered, result.Error
 }

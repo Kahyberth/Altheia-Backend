@@ -101,16 +101,16 @@ type ClinicSchedule struct {
 }
 
 type ClinicInformation struct {
-	ClinicID          string     `gorm:"primaryKey" json:"clinic_id"`
-	ClinicEmail       string     `json:"clinic_email"`
-	ClinicName        string     `json:"clinic_name"`
-	ClinicPhone       string     `json:"clinic_phone"`
-	ClinicDescription string     `json:"clinic_description"`
-	ClinicWebsite     string     `json:"clinic_website"`
-	EmployeeCount     int        `json:"employee_count"`
-	Services          []Services `gorm:"many2many:clinic_services;" json:"services,omitempty"`
-
-	Photos []Photo `gorm:"foreignKey:ClinicID" json:"photos,omitempty"`
+	ClinicID          string            `gorm:"primaryKey" json:"clinic_id"`
+	ClinicEmail       string            `json:"clinic_email"`
+	ClinicName        string            `json:"clinic_name"`
+	ClinicPhone       string            `json:"clinic_phone"`
+	ClinicDescription string            `json:"clinic_description"`
+	ClinicWebsite     string            `json:"clinic_website"`
+	EmployeeCount     int               `json:"employee_count"`
+	ServicesOffered   []ServicesOffered `gorm:"many2many:clinic_services;" json:"services offered,omitempty"`
+	EpsOffered        []EPS             `gorm:"many2many:clinic_eps;" json:"eps offered,omitempty"`
+	Photos            []Photo           `gorm:"foreignKey:ClinicID" json:"photos,omitempty"`
 
 	Address    string `json:"address"`
 	City       string `json:"city"`
@@ -124,7 +124,7 @@ type EPS struct {
 	Name string `gorm:"unique" json:"name"`
 }
 
-type Services struct {
+type ServicesOffered struct {
 	ID   string `gorm:"primaryKey" json:"id"`
 	Name string `gorm:"unique" json:"name"`
 }

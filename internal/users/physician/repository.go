@@ -68,10 +68,8 @@ func (r *repository) GetAllPhysiciansPaginated(page, limit int) (users.Paginatio
 
 	offset := (pagination.Page - 1) * pagination.Limit
 
-	// Obtener total de registros
 	r.db.Model(&users.Physician{}).Count(&totalRows)
 
-	// Obtener registros paginados
 	err := r.db.Limit(pagination.Limit).
 		Offset(offset).
 		Find(&physicians).Error
