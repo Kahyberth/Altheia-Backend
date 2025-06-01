@@ -12,6 +12,7 @@ type Repository interface {
 	GetAllPhysiciansPaginated(page, limit int) (users.Pagination, error)
 	SoftDelete(userId string) error
 	GetPhysicianByID(id string) ([]ResultPhysicians, error)
+	GetAllPhysicians() ([]users.Physician, error)
 }
 
 type repository struct {
@@ -54,6 +55,17 @@ func (r *repository) SoftDelete(userId string) error {
 		Status: false,
 	}
 	return r.db.Model(&users.Physician{}).Where("id = ?", userId).Updates(physician).Error
+}
+
+func (r *repository) GetAllPhysicians() ([]users.Physician, error) {
+	var physicians []users.Physician
+
+	err := r.db.Find(&physicians).Error
+	if err != nil {
+		return nil, err
+	}
+
+	return physicians, nil
 }
 
 func (r *repository) GetAllPhysiciansPaginated(page, limit int) (users.Pagination, error) {

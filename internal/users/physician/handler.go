@@ -46,6 +46,14 @@ func (h *Handler) SoftDeletePhysician(c *fiber.Ctx) error {
 	}
 	return c.JSON(fiber.Map{"message": "deleted successfully"})
 }
+func (h *Handler) GetAllPhysicians(c *fiber.Ctx) error {
+	result, err := h.service.GetAllPhysicians()
+	if err != nil {
+		return c.Status(500).JSON(fiber.Map{"error": err.Error()})
+	}
+
+	return c.JSON(result)
+}
 
 func (h *Handler) GetAllPhysiciansPaginated(c *fiber.Ctx) error {
 	page := c.QueryInt("page", 1)

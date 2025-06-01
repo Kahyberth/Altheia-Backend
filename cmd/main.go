@@ -4,12 +4,14 @@ import (
 	"Altheia-Backend/config"
 	"Altheia-Backend/internal/auth"
 	"Altheia-Backend/internal/clinical"
+	"Altheia-Backend/internal/clinical/appointments"
 	"Altheia-Backend/internal/db"
 	"Altheia-Backend/internal/middleware"
 	"Altheia-Backend/internal/users"
 	"Altheia-Backend/internal/users/clinicOwner"
 	"Altheia-Backend/internal/users/patient"
 	"Altheia-Backend/internal/users/physician"
+	"Altheia-Backend/internal/users/receptionist"
 	"github.com/gofiber/fiber/v2"
 	"github.com/gofiber/fiber/v2/middleware/cors"
 	"os"
@@ -34,7 +36,7 @@ func main() {
 
 		&clinical.MedicalHistory{},
 		&clinical.MedicalConsultation{},
-		&clinical.MedicalAppointment{},
+		&appointments.MedicalAppointment{},
 		&clinical.MedicalPrescription{},
 	)
 	if err != nil {
@@ -66,6 +68,16 @@ func main() {
 	clinicOwnerRepo := clinicOwner.NewRepository(database)
 	clinicOwnerService := clinicOwner.NewService(clinicOwnerRepo)
 	clinicOwnerHandler := clinicOwner.NewHandler(clinicOwnerService)
+
+	// Receptionist handler
+	receptionistRepo := receptionist.NewRepository(database)
+	receptionistService := receptionist.NewService(receptionistRepo)
+	receptionistHandler := receptionist.NewHandler(receptionistService)
+
+	// Appointment handler
+	appointmentRepo := appointments.NewRepository(database)
+	appointmentService := appointments.NewService(appointmentRepo)
+	appointmentHandler := appointments.NewHandler(appointmentService)
 
 	app := fiber.New()
 	app.Use(cors.New(cors.Config{
@@ -100,9 +112,22 @@ func main() {
 	patientGroup.Patch("/update/:id", patientHandler.UpdatePatient)
 	patientGroup.Post("/delete/:id", patientHandler.SoftDeletePatient)
 
+	// Receptionist routes
+	receptionistGroup := app.Group("/receptionist")
+	receptionistGroup.Post("/register", receptionistHandler.RegisterReceptionist)
+	receptionistGroup.Patch("/update/:id", receptionistHandler.UpdateReceptionist)
+	receptionistGroup.Get("/getAll", receptionistHandler.GetAllReceptionistsPaginated)
+
 	// Clinic Owner Routes
 	clinicOwnerGroup := app.Group("/clinic-owner")
 	clinicOwnerGroup.Post("/register", clinicOwnerHandler.CreateClinicOwner)
+
+	// Appointments routes
+	appointmentGroup := app.Group("/appointments")
+	//appointmentGroup.Use(middleware.JWTProtected())
+	appointmentGroup.Post("/create", appointmentHandler.CreateAppointment)
+	appointmentGroup.Get("/getAll", appointmentHandler.GetAllAppointments)
+	appointmentGroup.Patch("/updateStatus/:id", appointmentHandler.UpdateAppointmentStatus)
 
 	// Auth routes
 	authGroup := app.Group("/auth")

@@ -16,6 +16,7 @@ type Service interface {
 	SoftDeletePhysician(userId string) error
 	GetAllPhysiciansPaginated(page, limit int) (users.Pagination, error)
 	GetPhysicianByID(id string) ([]ResultPhysicians, error)
+	GetAllPhysicians() ([]users.Physician, error)
 }
 
 type service struct {
@@ -86,6 +87,16 @@ func (s *service) SoftDeletePhysician(userId string) error {
 
 	return nil
 
+}
+
+func (s *service) GetAllPhysicians() ([]users.Physician, error) {
+	var physicians []users.Physician
+
+	physicians, err := s.repo.GetAllPhysicians()
+	if err != nil {
+		return nil, err
+	}
+	return physicians, nil
 }
 
 func (s *service) GetPhysicianByID(id string) ([]ResultPhysicians, error) {
