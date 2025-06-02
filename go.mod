@@ -33,4 +33,6 @@ require (
 	golang.org/x/text v0.25.0 // indirect
 	gorm.io/driver/postgres v1.5.11 // indirect
 	gorm.io/gorm v1.26.0 // indirect
+	github.com/stretchr/testify v1.10.0 // indirect
+	github.com/DATA-DOG/go-sqlmock v1.5.2 // indirect
 )
