@@ -19,3 +19,9 @@ type CreateAppointmentDTO struct {
 	Status      string `json:"status"`
 	Reason      string `json:"reason"`
 }
+
+type AppointmentWithNamesDTO struct {
+	MedicalAppointment
+	PatientName   string `json:"patient_name"`
+	PhysicianName string `json:"physician_name"`
+}

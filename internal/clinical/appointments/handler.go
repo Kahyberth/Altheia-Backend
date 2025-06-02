@@ -49,3 +49,16 @@ func (h *Handler) UpdateAppointmentStatus(c *fiber.Ctx) error {
 	}
 	return nil
 }
+
+func (h *Handler) GetAllAppointmentsByMedicId(c *fiber.Ctx) error {
+	physicianId := c.Params("id")
+	var appointment []AppointmentWithNamesDTO
+
+	appointment, appointmentError := h.service.GetAllAppointmentsByMedicId(physicianId)
+
+	if appointmentError != nil {
+		return appointmentError
+	}
+
+	return c.JSON(appointment)
+}

@@ -4,6 +4,7 @@ type Service interface {
 	CreateAppointment(createAppointmentDTO CreateAppointmentDTO) error
 	GetAllAppointments() ([]MedicalAppointment, error)
 	UpdateAppointmentStatus(appointmentId string, status AppointmentStatus) error
+	GetAllAppointmentsByMedicId(medicId string) ([]AppointmentWithNamesDTO, error)
 }
 type service struct {
 	repo Repository
@@ -31,6 +32,18 @@ func (s *service) GetAllAppointments() ([]MedicalAppointment, error) {
 	var appointment []MedicalAppointment
 
 	appointment, err := s.repo.GetAllAppointments()
+
+	if err != nil {
+		return appointment, err
+	}
+
+	return appointment, nil
+}
+
+func (s *service) GetAllAppointmentsByMedicId(medicId string) ([]AppointmentWithNamesDTO, error) {
+	var appointment []AppointmentWithNamesDTO
+
+	appointment, err := s.repo.GetAllAppointmentsByMedicId(medicId)
 
 	if err != nil {
 		return appointment, err

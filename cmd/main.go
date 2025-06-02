@@ -94,7 +94,8 @@ func main() {
 	//physicianGroup.Use(middleware.JWTProtected())
 	physicianGroup.Post("/register", physicianHandler.RegisterPhysician)
 	physicianGroup.Patch("/update/:id", physicianHandler.UpdatePhysician)
-	physicianGroup.Get("/getAll/", physicianHandler.GetAllPhysiciansPaginated)
+	physicianGroup.Get("/getAllPaginated/", physicianHandler.GetAllPhysiciansPaginated)
+	physicianGroup.Get("/getAll/", physicianHandler.GetAllPhysicians)
 	physicianGroup.Get("/:id", physicianHandler.GetPhysicianById)
 
 	//Clinical routes
@@ -128,6 +129,7 @@ func main() {
 	appointmentGroup.Post("/create", appointmentHandler.CreateAppointment)
 	appointmentGroup.Get("/getAll", appointmentHandler.GetAllAppointments)
 	appointmentGroup.Patch("/updateStatus/:id", appointmentHandler.UpdateAppointmentStatus)
+	appointmentGroup.Get("/getAllByMedicId/:id", appointmentHandler.GetAllAppointmentsByMedicId)
 
 	// Auth routes
 	authGroup := app.Group("/auth")

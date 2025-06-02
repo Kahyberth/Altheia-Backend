@@ -12,7 +12,7 @@ type Repository interface {
 	GetAllPhysiciansPaginated(page, limit int) (users.Pagination, error)
 	SoftDelete(userId string) error
 	GetPhysicianByID(id string) ([]ResultPhysicians, error)
-	GetAllPhysicians() ([]users.Physician, error)
+	GetAllPhysicians() ([]ResultPhysicians, error)
 }
 
 type repository struct {
@@ -57,10 +57,13 @@ func (r *repository) SoftDelete(userId string) error {
 	return r.db.Model(&users.Physician{}).Where("id = ?", userId).Updates(physician).Error
 }
 
-func (r *repository) GetAllPhysicians() ([]users.Physician, error) {
-	var physicians []users.Physician
+func (r *repository) GetAllPhysicians() ([]ResultPhysicians, error) {
+	var physicians []ResultPhysicians
 
-	err := r.db.Find(&physicians).Error
+	err := r.db.Table("physicians").
+		Select("users.id as user_id, physicians.id as physician_id, users.name, users.email, users.rol, users.status, users.gender, users.last_login, physicians.physician_specialty").
+		Joins("INNER JOIN users ON users.id = physicians.user_id").
+		Scan(&physicians).Error
 	if err != nil {
 		return nil, err
 	}

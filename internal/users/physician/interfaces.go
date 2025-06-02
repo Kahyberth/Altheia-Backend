@@ -21,6 +21,7 @@ type UpdatePhysicianInfo struct {
 }
 
 type ResultPhysicians struct {
+	UserId             string    `json:"user_id"`
 	PhysicianID        string    `json:"physician_id"`
 	Name               string    `json:"name"`
 	Email              string    `json:"email"`

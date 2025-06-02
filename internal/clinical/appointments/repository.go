@@ -12,6 +12,7 @@ type Repository interface {
 	CreateAppointment(appointment CreateAppointmentDTO) error
 	GetAllAppointments() ([]MedicalAppointment, error)
 	UpdateAppointmentStatus(appointmentId string, status AppointmentStatus) error
+	GetAllAppointmentsByMedicId(physicianId string) ([]AppointmentWithNamesDTO, error)
 }
 
 type repository struct {
@@ -19,6 +20,38 @@ type repository struct {
 }
 
 func NewRepository(db *gorm.DB) Repository { return &repository{db} }
+
+func (r *repository) GetAllAppointmentsByMedicId(physicianId string) ([]AppointmentWithNamesDTO, error) {
+	var appointments []MedicalAppointment
+	err := r.db.Model(&MedicalAppointment{}).
+		Where("physician_id = ?", physicianId).
+		Preload("Patient").
+		Preload("Physician").
+		Find(&appointments).Error
+	if err != nil {
+		return nil, fmt.Errorf("error al obtener las citas médicas por ID de médico: %w", err)
+	}
+
+	var result []AppointmentWithNamesDTO
+	for _, appt := range appointments {
+		var patient users.User
+		var physician users.User
+		// Buscar nombre del paciente
+		if err := r.db.Model(&users.User{}).Where("id = ?", appt.Patient.UserID).First(&patient).Error; err != nil {
+			patient.Name = ""
+		}
+		// Buscar nombre del médico
+		if err := r.db.Model(&users.User{}).Where("id = ?", appt.Physician.UserID).First(&physician).Error; err != nil {
+			physician.Name = ""
+		}
+		result = append(result, AppointmentWithNamesDTO{
+			MedicalAppointment: appt,
+			PatientName:        patient.Name,
+			PhysicianName:      physician.Name,
+		})
+	}
+	return result, nil
+}
 
 func (r *repository) CreateAppointment(appointment CreateAppointmentDTO) error {
 	nanoId, _ := gonanoid.Nanoid()
