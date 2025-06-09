@@ -47,7 +47,13 @@ func (r *repository) GetAllAppointmentsByMedicId(physicianId string) ([]Appointm
 		result = append(result, AppointmentWithNamesDTO{
 			MedicalAppointment: appt,
 			PatientName:        patient.Name,
+			PatientGender:      patient.Gender,
+			PatientEmail:       patient.Email,
+			PatientPhone:       patient.Phone,
 			PhysicianName:      physician.Name,
+			PhysicianGender:    physician.Gender,
+			PhysicianEmail:     physician.Email,
+			PhysicianPhone:     physician.Phone,
 		})
 	}
 	return result, nil
@@ -56,9 +62,16 @@ func (r *repository) GetAllAppointmentsByMedicId(physicianId string) ([]Appointm
 func (r *repository) CreateAppointment(appointment CreateAppointmentDTO) error {
 	nanoId, _ := gonanoid.Nanoid()
 
+	// Configurar la zona horaria de Bogotá
+	loc, err := time.LoadLocation("America/Bogota")
+	if err != nil {
+		return fmt.Errorf("error al cargar la zona horaria: %w", err)
+	}
+
 	dateTimeStr := fmt.Sprintf("%s %s", appointment.Date, appointment.Time)
 
-	dateTime, err := time.Parse("2006-01-02 15:04", dateTimeStr)
+	// Parsear la fecha especificando la zona horaria de Bogotá
+	dateTime, err := time.ParseInLocation("2006-01-02 15:04", dateTimeStr, loc)
 	if err != nil {
 		return fmt.Errorf("formato de fecha u hora inválido: %w", err)
 	}
@@ -72,13 +85,9 @@ func (r *repository) CreateAppointment(appointment CreateAppointmentDTO) error {
 		Reason:      appointment.Reason,
 		Patient:     users.Patient{},
 		Physician:   users.Physician{},
-		CreatedAt:   time.Time{},
-		UpdatedAt:   time.Time{},
-		DeletedAt:   gorm.DeletedAt{},
 	}
 
 	err = r.db.Create(&newAppointment).Error
-
 	if err != nil {
 		return fmt.Errorf("error al crear la cita médica: %w", err)
 	}

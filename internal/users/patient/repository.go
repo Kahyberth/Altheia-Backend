@@ -11,6 +11,8 @@ type Repository interface {
 	UpdateUserAndPatient(UserId string, Info UpdatePatientInfo) error
 	SoftDelete(userId string) error
 	GetAllPatientsPaginated(page, limit int) (users.Pagination, error)
+	GetAllPatients() ([]users.Patient, error)
+	GetPatientByClinicId(clinicId string) ([]users.Patient, error)
 }
 
 type repository struct {
@@ -80,4 +82,39 @@ func (r *repository) GetAllPatientsPaginated(page, limit int) (users.Pagination,
 	Pagination.Result = patients
 
 	return Pagination, nil
+}
+
+func (r *repository) GetAllPatients() ([]users.Patient, error) {
+	type Result struct {
+		users.Patient
+		Name string `json:"name"`
+	}
+	var results []Result
+
+	err := r.db.Model(&users.Patient{}).
+		Select("patients.*, users.name as name").
+		Joins("JOIN users ON patients.user_id = users.id").
+		Scan(&results).Error
+	if err != nil {
+		return nil, err
+	}
+
+	patients := make([]users.Patient, len(results))
+	for i, result := range results {
+		patients[i] = result.Patient
+		patients[i].Name = result.Name
+	}
+
+	return patients, nil
+}
+
+func (r *repository) GetPatientByClinicId(clinicId string) ([]users.Patient, error) {
+	var patients []users.Patient
+
+	err := r.db.Where("clinic_id = ?", clinicId).Find(&patients).Error
+	if err != nil {
+		return nil, err
+	}
+
+	return patients, nil
 }

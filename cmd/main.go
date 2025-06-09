@@ -109,7 +109,9 @@ func main() {
 	//Patient routes
 	patientGroup := app.Group("/patient")
 	patientGroup.Post("/register", patientHandler.RegisterPatient)
-	patientGroup.Get("/getAll", patientHandler.GetAllPatientsPaginated)
+	patientGroup.Get("/getAllPaginated", patientHandler.GetAllPatientsPaginated)
+	patientGroup.Get("/getAll", patientHandler.GetAllPatients)
+	patientGroup.Get("/getByClinicId/:clinicId", patientHandler.GetPatientByClinicId)
 	patientGroup.Patch("/update/:id", patientHandler.UpdatePatient)
 	patientGroup.Post("/delete/:id", patientHandler.SoftDeletePatient)
 

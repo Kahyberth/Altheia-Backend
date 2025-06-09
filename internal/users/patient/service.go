@@ -13,6 +13,8 @@ type Service interface {
 	UpdatePatient(userId string, patientData UpdatePatientInfo) error
 	SoftDeletePatient(userId string) error
 	GetAllPatientsPaginated(page, limit int) (users.Pagination, error)
+	GetAllPatients() ([]users.Patient, error)
+	GetPatientByClinicId(clinicId string) ([]users.Patient, error)
 }
 
 type service struct {
@@ -90,6 +92,22 @@ func (s *service) GetAllPatientsPaginated(limit, page int) (users.Pagination, er
 	patients, err := s.repository.GetAllPatientsPaginated(limit, page)
 	if err != nil {
 		return users.Pagination{}, err
+	}
+	return patients, nil
+}
+
+func (s *service) GetAllPatients() ([]users.Patient, error) {
+	patients, err := s.repository.GetAllPatients()
+	if err != nil {
+		return nil, err
+	}
+	return patients, nil
+}
+
+func (s *service) GetPatientByClinicId(clinicId string) ([]users.Patient, error) {
+	patients, err := s.repository.GetPatientByClinicId(clinicId)
+	if err != nil {
+		return nil, err
 	}
 	return patients, nil
 }

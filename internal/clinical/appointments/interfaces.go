@@ -22,6 +22,12 @@ type CreateAppointmentDTO struct {
 
 type AppointmentWithNamesDTO struct {
 	MedicalAppointment
-	PatientName   string `json:"patient_name"`
-	PhysicianName string `json:"physician_name"`
+	PatientName     string `json:"patient_name"`
+	PatientGender   string `json:"patient_gender"`
+	PatientEmail    string `json:"patient_email"`
+	PatientPhone    string `json:"patient_phone"`
+	PhysicianName   string `json:"physician_name"`
+	PhysicianGender string `json:"physician_gender"`
+	PhysicianEmail  string `json:"physician_email"`
+	PhysicianPhone  string `json:"physician_phone"`
 }

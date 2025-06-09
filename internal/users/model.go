@@ -29,6 +29,7 @@ type User struct {
 type Patient struct {
 	ID          string         `gorm:"primaryKey" json:"id"`
 	UserID      string         `gorm:"not null;index" json:"user_id"`
+	Name        string         `gorm:"-" json:"name"`
 	DateOfBirth string         `json:"date_of_birth"`
 	Address     string         `json:"address"`
 	Eps         string         `json:"eps"`

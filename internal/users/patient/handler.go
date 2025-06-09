@@ -56,3 +56,22 @@ func (h *Handler) GetAllPatientsPaginated(c *fiber.Ctx) error {
 
 	return c.JSON(result)
 }
+
+func (h *Handler) GetAllPatients(c *fiber.Ctx) error {
+	patients, err := h.service.GetAllPatients()
+	if err != nil {
+		return c.Status(500).JSON(fiber.Map{"error": err.Error()})
+	}
+
+	return c.JSON(patients)
+}
+
+func (h *Handler) GetPatientByClinicId(c *fiber.Ctx) error {
+	clinicId := c.Params("clinicId")
+	patients, err := h.service.GetPatientByClinicId(clinicId)
+	if err != nil {
+		return c.Status(500).JSON(fiber.Map{"error": err.Error()})
+	}
+
+	return c.JSON(patients)
+}
