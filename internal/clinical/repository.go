@@ -4,9 +4,10 @@ import (
 	"Altheia-Backend/internal/users"
 	"Altheia-Backend/pkg/utils"
 	"fmt"
+	"time"
+
 	gonanoid "github.com/matoous/go-nanoid"
 	"gorm.io/gorm"
-	"time"
 )
 
 type Repository interface {
@@ -15,6 +16,8 @@ type Repository interface {
 	GetAllEps(page int, pagSize int) ([]EPS, error)
 	GetAllServices(page int, pagSize int) ([]ServicesOffered, error)
 	CreateServices(dto CreateServicesDto) error
+	GetClinicByOwnerID(ownerID string) (*ClinicCompleteInfoResponse, error)
+	AssignServicesToClinic(dto AssignServicesClinicDTO) error
 }
 
 type repository struct {
@@ -39,7 +42,7 @@ func (r *repository) CreateClinic(createClinicDto CreateClinicDTO) error {
 			Name:           createClinicDto.OwnerName,
 			Email:          createClinicDto.OwnerEmail,
 			Password:       hashed,
-			Rol:            "staff",
+			Rol:            "owner",
 			Phone:          createClinicDto.OwnerPhone,
 			DocumentNumber: createClinicDto.OwnerDocumentNumber,
 			Status:         false,
@@ -112,6 +115,10 @@ func (r *repository) CreateClinic(createClinicDto CreateClinicDTO) error {
 				Find(&services).Error; servicesError != nil {
 				return servicesError
 			}
+
+			if len(services) != len(createClinicDto.ServicesOffered) {
+				return fmt.Errorf("one or more service IDs are invalid")
+			}
 		}
 
 		if len(services) > 0 {
@@ -128,6 +135,10 @@ func (r *repository) CreateClinic(createClinicDto CreateClinicDTO) error {
 				Where("id IN ?", createClinicDto.AcceptedEPS).
 				Find(&acceptedEps).Error; epsError != nil {
 				return epsError
+			}
+
+			if len(acceptedEps) != len(createClinicDto.AcceptedEPS) {
+				return fmt.Errorf("one or more EPS IDs are invalid")
 			}
 		}
 
@@ -193,4 +204,62 @@ func (r *repository) GetAllServices(page int, pagSize int) ([]ServicesOffered, e
 	offset := (page - 1) * pagSize
 	result := r.db.Limit(pagSize).Offset(offset).Find(&servicesOffered)
 	return servicesOffered, result.Error
+}
+
+func (r *repository) GetClinicByOwnerID(ownerID string) (*ClinicCompleteInfoResponse, error) {
+	var clinic Clinic
+	var owner users.User
+
+	var clinicOwner users.ClinicOwner
+	if err := r.db.Where("user_id = ?", ownerID).First(&clinicOwner).Error; err != nil {
+		return nil, fmt.Errorf("clinic owner not found: %v", err)
+	}
+
+	if err := r.db.
+		Preload("ClinicInformation.ServicesOffered").
+		Preload("ClinicInformation.EpsOffered").
+		Preload("ClinicInformation.Photos").
+		Preload("Physicians.User").
+		Preload("Receptionists.User").
+		Preload("LabTechnicians.User").
+		Preload("Patients.User").
+		Where("id = ?", clinicOwner.ClinicID).
+		First(&clinic).Error; err != nil {
+		return nil, fmt.Errorf("clinic not found: %v", err)
+	}
+
+	if err := r.db.Where("id = ?", ownerID).First(&owner).Error; err != nil {
+		return nil, fmt.Errorf("owner user not found: %v", err)
+	}
+
+	response := &ClinicCompleteInfoResponse{
+		Clinic:      clinic,
+		Owner:       owner,
+		Information: clinic.ClinicInformation,
+	}
+
+	return response, nil
+}
+
+func (r *repository) AssignServicesToClinic(dto AssignServicesClinicDTO) error {
+	return r.db.Transaction(func(tx *gorm.DB) error {
+
+		var clinicInfo ClinicInformation
+		if err := tx.Where("clinic_id = ?", dto.ClinicID).
+			First(&clinicInfo).Error; err != nil {
+			return fmt.Errorf("clinic information not found: %v", err)
+		}
+
+		var services []ServicesOffered
+		if len(dto.Services) > 0 {
+			if err := tx.Where("id IN ?", dto.Services).Find(&services).Error; err != nil {
+				return fmt.Errorf("services not found: %v", err)
+			}
+		}
+
+		if err := tx.Model(&clinicInfo).Association("ServicesOffered").Replace(services); err != nil {
+			return fmt.Errorf("failed to associate services: %v", err)
+		}
+		return nil
+	})
 }

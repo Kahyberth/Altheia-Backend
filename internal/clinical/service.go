@@ -6,6 +6,8 @@ type Service interface {
 	GetAllEps(page int, pagSize int) ([]EPS, error)
 	CreateServicesOffered(servicesOffered CreateServicesDto) error
 	GetAllServicesOffered(page int, pagSize int) ([]ServicesOffered, error)
+	GetClinicByOwnerID(ownerID string) (*ClinicCompleteInfoResponse, error)
+	AssignServicesToClinic(dto AssignServicesClinicDTO) error
 }
 
 type service struct {
@@ -56,4 +58,16 @@ func (s *service) GetAllEps(page int, pagSize int) ([]EPS, error) {
 		return eps, epsError
 	}
 	return eps, nil
+}
+
+func (s *service) GetClinicByOwnerID(ownerID string) (*ClinicCompleteInfoResponse, error) {
+	return s.repo.GetClinicByOwnerID(ownerID)
+}
+
+func (s *service) AssignServicesToClinic(dto AssignServicesClinicDTO) error {
+	err := s.repo.AssignServicesToClinic(dto)
+	if err != nil {
+		return err
+	}
+	return nil
 }

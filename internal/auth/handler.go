@@ -84,7 +84,9 @@ func (h *Handler) Logout(c *fiber.Ctx) error {
 }
 
 func (h *Handler) VerifyToken(c *fiber.Ctx) error {
-	fmt.Print("Se esta verificando...")
+
+	fmt.Print("Entro")
+
 	token := c.Cookies("access_token")
 	if token == "" {
 		return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{
@@ -97,6 +99,9 @@ func (h *Handler) VerifyToken(c *fiber.Ctx) error {
 			"error": "Token inválido o expirado",
 		})
 	}
+
+	fmt.Println("Token verificado", token)
+
 	return c.JSON(fiber.Map{
 		"isValid":  true,
 		"userInfo": data,

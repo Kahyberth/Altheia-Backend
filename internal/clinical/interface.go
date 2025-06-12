@@ -1,5 +1,7 @@
 package clinical
 
+import "Altheia-Backend/internal/users"
+
 type CreateClinicDTO struct {
 	OwnerName           string `json:"owner_name"`
 	OwnerEmail          string `json:"owner_email"`
@@ -32,4 +34,15 @@ type CreateEpsDto struct {
 
 type CreateServicesDto struct {
 	ServicesOffered []string `json:"services_offered"`
+}
+
+type ClinicCompleteInfoResponse struct {
+	Clinic      Clinic            `json:"clinic"`
+	Owner       users.User        `json:"owner"`
+	Information ClinicInformation `json:"information"`
+}
+
+type AssignServicesClinicDTO struct {
+	ClinicID string   `json:"clinic_id"`
+	Services []string `json:"services"`
 }

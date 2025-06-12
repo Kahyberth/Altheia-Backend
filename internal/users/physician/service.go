@@ -4,8 +4,9 @@ import (
 	"Altheia-Backend/internal/users"
 	"Altheia-Backend/pkg/utils"
 	"fmt"
-	"gorm.io/gorm"
 	"time"
+
+	"gorm.io/gorm"
 
 	gonanoid "github.com/matoous/go-nanoid"
 )
@@ -28,6 +29,20 @@ func NewService(r Repository) Service {
 }
 
 func (s *service) RegisterPhysician(physician CreatePhysicianInfo) error {
+	// Validate clinic ID is provided
+	if physician.ClinicID == "" {
+		return fmt.Errorf("clinic_id is required")
+	}
+
+	// Check clinic exists
+	exists, err := s.repo.ClinicExists(physician.ClinicID)
+	if err != nil {
+		return err
+	}
+	if !exists {
+		return fmt.Errorf("clinic not found")
+	}
+
 	nanoid, _ := gonanoid.Nanoid()
 	hashed, _ := utils.HashPassword(physician.Password)
 	physicianNanoid, _ := gonanoid.Nanoid()
@@ -52,6 +67,7 @@ func (s *service) RegisterPhysician(physician CreatePhysicianInfo) error {
 			PhysicianSpecialty: physician.PhysicianSpeciality,
 			LicenseNumber:      physician.LicenseNumber,
 			Status:             true,
+			ClinicID:           &physician.ClinicID,
 			CreatedAt:          time.Time{},
 			UpdatedAt:          time.Time{},
 			DeletedAt:          gorm.DeletedAt{},

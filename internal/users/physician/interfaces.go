@@ -11,6 +11,7 @@ type CreatePhysicianInfo struct {
 	DocumentNumber      string `json:"document_number"`
 	PhysicianSpeciality string `json:"physician_specialty"`
 	LicenseNumber       string `json:"license_number"`
+	ClinicID            string `json:"clinic_id"`
 }
 
 type UpdatePhysicianInfo struct {

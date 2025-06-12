@@ -1,8 +1,9 @@
 package users
 
 import (
-	"gorm.io/gorm"
 	"time"
+
+	"gorm.io/gorm"
 )
 
 type User struct {
@@ -20,21 +21,24 @@ type User struct {
 	DeletedAt      gorm.DeletedAt `gorm:"index" json:"-"`
 	LastLogin      time.Time      `json:"lastLogin"`
 
-	Patient      Patient      `gorm:"foreignKey:UserID;references:ID" json:"patient,omitempty"`
-	Physician    Physician    `gorm:"foreignKey:UserID;references:ID" json:"physician,omitempty"`
-	Receptionist Receptionist `gorm:"foreignKey:UserID;references:ID" json:"receptionist,omitempty"`
-	ClinicOwner  ClinicOwner  `gorm:"foreignKey:UserID;references:ID" json:"clinic_owner,omitempty"`
+	Patient       Patient       `gorm:"foreignKey:UserID;references:ID" json:"patient,omitempty"`
+	Physician     Physician     `gorm:"foreignKey:UserID;references:ID" json:"physician,omitempty"`
+	Receptionist  Receptionist  `gorm:"foreignKey:UserID;references:ID" json:"receptionist,omitempty"`
+	ClinicOwner   ClinicOwner   `gorm:"foreignKey:UserID;references:ID" json:"clinic_owner,omitempty"`
+	LabTechnician LabTechnician `gorm:"foreignKey:UserID;references:ID" json:"lab_technician,omitempty"`
 }
 
 type Patient struct {
 	ID          string         `gorm:"primaryKey" json:"id"`
 	UserID      string         `gorm:"not null;index" json:"user_id"`
+	User        *User          `gorm:"foreignKey:UserID" json:"user"`
 	Name        string         `gorm:"-" json:"name"`
 	DateOfBirth string         `json:"date_of_birth"`
 	Address     string         `json:"address"`
 	Eps         string         `json:"eps"`
 	BloodType   string         `json:"blood_type"`
 	Status      bool           `json:"status"`
+	ClinicID    *string        `json:"clinic_id"`
 	CreatedAt   time.Time      `json:"createdAt"`
 	UpdatedAt   time.Time      `json:"updatedAt"`
 	DeletedAt   gorm.DeletedAt `gorm:"index" json:"-"`
@@ -43,6 +47,7 @@ type Patient struct {
 type Physician struct {
 	ID                 string         `gorm:"primaryKey" json:"id"`
 	UserID             string         `gorm:"not null;index" json:"user_id"`
+	User               *User          `gorm:"foreignKey:UserID" json:"user"`
 	PhysicianSpecialty string         `json:"physician_specialty"`
 	LicenseNumber      string         `json:"license_number"`
 	Status             bool           `json:"status"`
@@ -55,6 +60,7 @@ type Physician struct {
 type Receptionist struct {
 	ID        string         `gorm:"primaryKey" json:"id"`
 	UserID    string         `gorm:"not null;index" json:"user_id"`
+	User      *User          `gorm:"foreignKey:UserID" json:"user"`
 	ClinicID  *string        `json:"clinic_id"`
 	Status    bool           `json:"status"`
 	CreatedAt time.Time      `json:"createdAt"`
@@ -74,6 +80,17 @@ type ClinicOwner struct {
 	ID        string         `gorm:"primaryKey" json:"id"`
 	UserID    string         `gorm:"not null;index" json:"user_id"`
 	ClinicID  string         `gorm:"not null;index" json:"clinic_id"`
+	Status    bool           `json:"status"`
+	CreatedAt time.Time      `json:"createdAt"`
+	UpdatedAt time.Time      `json:"updatedAt"`
+	DeletedAt gorm.DeletedAt `gorm:"index" json:"-"`
+}
+
+type LabTechnician struct {
+	ID        string         `gorm:"primaryKey" json:"id"`
+	UserID    string         `gorm:"not null;index" json:"user_id"`
+	User      *User          `gorm:"foreignKey:UserID" json:"user"`
+	ClinicID  *string        `json:"clinic_id"`
 	Status    bool           `json:"status"`
 	CreatedAt time.Time      `json:"createdAt"`
 	UpdatedAt time.Time      `json:"updatedAt"`

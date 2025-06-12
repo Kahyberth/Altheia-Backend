@@ -1,8 +1,9 @@
 package clinical
 
 import (
-	"github.com/gofiber/fiber/v2"
 	"strconv"
+
+	"github.com/gofiber/fiber/v2"
 )
 
 type Handler struct {
@@ -99,4 +100,48 @@ func (h *Handler) GetAllServices(c *fiber.Ctx) error {
 	}
 
 	return c.JSON(servicesOffered)
+}
+
+func (h *Handler) GetClinicByOwnerID(c *fiber.Ctx) error {
+	ownerID := c.Params("ownerId")
+
+	if ownerID == "" {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+			"error": "owner ID is required",
+		})
+	}
+
+	clinicInfo, err := h.service.GetClinicByOwnerID(ownerID)
+	if err != nil {
+		return c.Status(fiber.StatusNotFound).JSON(fiber.Map{
+			"error": err.Error(),
+		})
+	}
+
+	return c.JSON(clinicInfo)
+}
+
+func (h *Handler) AssignServicesToClinic(c *fiber.Ctx) error {
+	var dto AssignServicesClinicDTO
+	if err := c.BodyParser(&dto); err != nil {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+			"error": err.Error(),
+		})
+	}
+
+	if dto.ClinicID == "" || len(dto.Services) == 0 {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+			"error": "clinic_id and services are required",
+		})
+	}
+
+	if err := h.service.AssignServicesToClinic(dto); err != nil {
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+			"error": err.Error(),
+		})
+	}
+
+	return c.JSON(fiber.Map{
+		"message": "services assigned to clinic successfully",
+	})
 }

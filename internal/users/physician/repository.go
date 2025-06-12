@@ -1,9 +1,11 @@
 package physician
 
 import (
+	"Altheia-Backend/internal/clinical"
 	"Altheia-Backend/internal/users"
-	"gorm.io/gorm"
 	"time"
+
+	"gorm.io/gorm"
 )
 
 type Repository interface {
@@ -13,6 +15,7 @@ type Repository interface {
 	SoftDelete(userId string) error
 	GetPhysicianByID(id string) ([]ResultPhysicians, error)
 	GetAllPhysicians() ([]ResultPhysicians, error)
+	ClinicExists(id string) (bool, error)
 }
 
 type repository struct {
@@ -113,4 +116,12 @@ func (r *repository) GetPhysicianByID(id string) ([]ResultPhysicians, error) {
 	}
 
 	return result, nil
+}
+
+func (r *repository) ClinicExists(id string) (bool, error) {
+	var count int64
+	if err := r.db.Model(&clinical.Clinic{}).Where("id = ?", id).Count(&count).Error; err != nil {
+		return false, err
+	}
+	return count > 0, nil
 }

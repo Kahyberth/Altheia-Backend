@@ -12,9 +12,10 @@ import (
 	"Altheia-Backend/internal/users/patient"
 	"Altheia-Backend/internal/users/physician"
 	"Altheia-Backend/internal/users/receptionist"
+	"os"
+
 	"github.com/gofiber/fiber/v2"
 	"github.com/gofiber/fiber/v2/middleware/cors"
-	"os"
 )
 
 func main() {
@@ -33,6 +34,7 @@ func main() {
 		&users.Physician{},
 		&users.Receptionist{},
 		&users.ClinicOwner{},
+		&users.LabTechnician{},
 
 		&clinical.MedicalHistory{},
 		&clinical.MedicalConsultation{},
@@ -83,7 +85,6 @@ func main() {
 	app.Use(cors.New(cors.Config{
 		AllowOrigins:     client,
 		AllowHeaders:     "Origin, Content-Type, Accept, Authorization",
-		AllowMethods:     "GET, POST, PUT, DELETE, OPTIONS",
 		AllowCredentials: true,
 	}))
 
@@ -105,6 +106,8 @@ func main() {
 	clinicGroup.Get("/get-eps", clinicHandler.GetAllEps)
 	clinicGroup.Post("/create-services", clinicHandler.CreateServices)
 	clinicGroup.Get("/get-services", clinicHandler.GetAllServices)
+	clinicGroup.Get("/by-owner/:ownerId", clinicHandler.GetClinicByOwnerID)
+	clinicGroup.Post("/assign-services", clinicHandler.AssignServicesToClinic)
 
 	//Patient routes
 	patientGroup := app.Group("/patient")
