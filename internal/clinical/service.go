@@ -8,6 +8,7 @@ type Service interface {
 	GetAllServicesOffered(page int, pagSize int) ([]ServicesOffered, error)
 	GetClinicByOwnerID(ownerID string) (*ClinicCompleteInfoResponse, error)
 	AssignServicesToClinic(dto AssignServicesClinicDTO) error
+	GetClinicsByEps(epsID string, page int, pageSize int) ([]Clinic, error)
 }
 
 type service struct {
@@ -70,4 +71,8 @@ func (s *service) AssignServicesToClinic(dto AssignServicesClinicDTO) error {
 		return err
 	}
 	return nil
+}
+
+func (s *service) GetClinicsByEps(epsID string, page int, pageSize int) ([]Clinic, error) {
+	return s.repo.GetClinicsByEps(epsID, page, pageSize)
 }

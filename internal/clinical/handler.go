@@ -145,3 +145,32 @@ func (h *Handler) AssignServicesToClinic(c *fiber.Ctx) error {
 		"message": "services assigned to clinic successfully",
 	})
 }
+
+// GetClinicsByEps returns clinics that accept a given EPS id with pagination support
+func (h *Handler) GetClinicsByEps(c *fiber.Ctx) error {
+	epsID := c.Params("epsId")
+	if epsID == "" {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+			"error": "eps ID is required",
+		})
+	}
+
+	// Parse pagination parameters, default to first page and size 10 if not provided
+	page, errPage := strconv.Atoi(c.Query("page", "1"))
+	size, errSize := strconv.Atoi(c.Query("size", "10"))
+
+	if errPage != nil || errSize != nil {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+			"error": "invalid pagination parameters",
+		})
+	}
+
+	clinics, err := h.service.GetClinicsByEps(epsID, page, size)
+	if err != nil {
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+			"error": err.Error(),
+		})
+	}
+
+	return c.JSON(clinics)
+}

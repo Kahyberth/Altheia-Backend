@@ -18,6 +18,7 @@ type Repository interface {
 	CreateServices(dto CreateServicesDto) error
 	GetClinicByOwnerID(ownerID string) (*ClinicCompleteInfoResponse, error)
 	AssignServicesToClinic(dto AssignServicesClinicDTO) error
+	GetClinicsByEps(epsID string, page int, pageSize int) ([]Clinic, error)
 }
 
 type repository struct {
@@ -262,4 +263,34 @@ func (r *repository) AssignServicesToClinic(dto AssignServicesClinicDTO) error {
 		}
 		return nil
 	})
+}
+
+// GetClinicsByEps returns a paginated list of clinics that accept the given EPS
+func (r *repository) GetClinicsByEps(epsID string, page int, pageSize int) ([]Clinic, error) {
+	var clinics []Clinic
+
+	// Calculate pagination offset
+	offset := (page - 1) * pageSize
+
+	// Sub-query that returns the clinic IDs associated to the EPS
+	subQuery := r.db.
+		Table("clinic_eps").
+		Select("clinic_information_clinic_id").
+		Where("eps_id = ?", epsID)
+
+	// Main query fetching the clinics together with their information and relations
+	err := r.db.
+		Preload("ClinicInformation.ServicesOffered").
+		Preload("ClinicInformation.EpsOffered").
+		Preload("ClinicInformation.Photos").
+		Where("id IN (?)", subQuery).
+		Limit(pageSize).
+		Offset(offset).
+		Find(&clinics).Error
+
+	if err != nil {
+		return nil, err
+	}
+
+	return clinics, nil
 }
