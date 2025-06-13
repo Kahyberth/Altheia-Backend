@@ -1,5 +1,9 @@
 package clinical
 
+import (
+	"Altheia-Backend/internal/users"
+)
+
 type Service interface {
 	CreateClinical(createClinicDto CreateClinicDTO) error
 	CreateEps(epsDto CreateEpsDto) error
@@ -9,6 +13,7 @@ type Service interface {
 	GetClinicByOwnerID(ownerID string) (*ClinicCompleteInfoResponse, error)
 	AssignServicesToClinic(dto AssignServicesClinicDTO) error
 	GetClinicsByEps(epsID string, page int, pageSize int) ([]Clinic, error)
+	GetClinicPersonnel(clinicID string) ([]users.User, error)
 }
 
 type service struct {
@@ -75,4 +80,8 @@ func (s *service) AssignServicesToClinic(dto AssignServicesClinicDTO) error {
 
 func (s *service) GetClinicsByEps(epsID string, page int, pageSize int) ([]Clinic, error) {
 	return s.repo.GetClinicsByEps(epsID, page, pageSize)
+}
+
+func (s *service) GetClinicPersonnel(clinicID string) ([]users.User, error) {
+	return s.repo.GetClinicPersonnel(clinicID)
 }

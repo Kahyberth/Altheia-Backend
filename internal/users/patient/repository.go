@@ -2,8 +2,9 @@ package patient
 
 import (
 	"Altheia-Backend/internal/users"
-	"gorm.io/gorm"
 	"time"
+
+	"gorm.io/gorm"
 )
 
 type Repository interface {
@@ -13,6 +14,7 @@ type Repository interface {
 	GetAllPatientsPaginated(page, limit int) (users.Pagination, error)
 	GetAllPatients() ([]users.Patient, error)
 	GetPatientByClinicId(clinicId string) ([]users.Patient, error)
+	GetPatientByClinicIdPaginated(clinicId string, page, limit int) (users.Pagination, error)
 }
 
 type repository struct {
@@ -24,8 +26,7 @@ func NewRepository(db *gorm.DB) Repository {
 }
 
 func (r *repository) Create(user *users.User) error {
-	r.db.Create(user)
-	return nil
+	return r.db.Session(&gorm.Session{FullSaveAssociations: true}).Create(user).Error
 }
 
 func (r *repository) UpdateUserAndPatient(UserId string, Info UpdatePatientInfo) error {
@@ -111,10 +112,35 @@ func (r *repository) GetAllPatients() ([]users.Patient, error) {
 func (r *repository) GetPatientByClinicId(clinicId string) ([]users.Patient, error) {
 	var patients []users.Patient
 
-	err := r.db.Where("clinic_id = ?", clinicId).Find(&patients).Error
+	err := r.db.Preload("User").Where("clinic_id = ?", clinicId).Find(&patients).Error
 	if err != nil {
 		return nil, err
 	}
 
 	return patients, nil
+}
+
+func (r *repository) GetPatientByClinicIdPaginated(clinicId string, page, limit int) (users.Pagination, error) {
+	var patients []users.Patient
+	var totalRows int64
+
+	pagination := users.Pagination{
+		Limit: limit,
+		Page:  page,
+	}
+
+	offset := (pagination.Page - 1) * pagination.Limit
+
+	r.db.Model(&users.Patient{}).Where("clinic_id = ?", clinicId).Count(&totalRows)
+
+	if err := r.db.Preload("User").Where("clinic_id = ?", clinicId).
+		Limit(pagination.Limit).
+		Offset(offset).
+		Find(&patients).Error; err != nil {
+		return users.Pagination{}, err
+	}
+
+	pagination.Total = totalRows
+	pagination.Result = patients
+	return pagination, nil
 }

@@ -109,6 +109,8 @@ func main() {
 	clinicGroup.Get("/by-owner/:ownerId", clinicHandler.GetClinicByOwnerID)
 	clinicGroup.Post("/assign-services", clinicHandler.AssignServicesToClinic)
 	clinicGroup.Get("/by-eps/:epsId", clinicHandler.GetClinicsByEps)
+	clinicGroup.Get("/personnel/:clinicId", clinicHandler.GetClinicPersonnel)
+	clinicGroup.Get("/patients/:clinicId", patientHandler.GetPatientByClinicId)
 
 	//Patient routes
 	patientGroup := app.Group("/patient")

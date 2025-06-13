@@ -19,6 +19,7 @@ type Repository interface {
 	GetClinicByOwnerID(ownerID string) (*ClinicCompleteInfoResponse, error)
 	AssignServicesToClinic(dto AssignServicesClinicDTO) error
 	GetClinicsByEps(epsID string, page int, pageSize int) ([]Clinic, error)
+	GetClinicPersonnel(clinicID string) ([]users.User, error)
 }
 
 type repository struct {
@@ -265,20 +266,16 @@ func (r *repository) AssignServicesToClinic(dto AssignServicesClinicDTO) error {
 	})
 }
 
-// GetClinicsByEps returns a paginated list of clinics that accept the given EPS
 func (r *repository) GetClinicsByEps(epsID string, page int, pageSize int) ([]Clinic, error) {
 	var clinics []Clinic
 
-	// Calculate pagination offset
 	offset := (page - 1) * pageSize
 
-	// Sub-query that returns the clinic IDs associated to the EPS
 	subQuery := r.db.
 		Table("clinic_eps").
 		Select("clinic_information_clinic_id").
 		Where("eps_id = ?", epsID)
 
-	// Main query fetching the clinics together with their information and relations
 	err := r.db.
 		Preload("ClinicInformation.ServicesOffered").
 		Preload("ClinicInformation.EpsOffered").
@@ -293,4 +290,46 @@ func (r *repository) GetClinicsByEps(epsID string, page int, pageSize int) ([]Cl
 	}
 
 	return clinics, nil
+}
+
+func (r *repository) GetClinicPersonnel(clinicID string) ([]users.User, error) {
+	var clinic Clinic
+
+	if err := r.db.
+		Preload("Physicians.User").
+		Preload("Receptionists.User").
+		Preload("Patients.User").
+		Preload("LabTechnicians.User").
+		Where("id = ?", clinicID).
+		First(&clinic).Error; err != nil {
+		return nil, err
+	}
+
+	var personnel []users.User
+
+	for _, p := range clinic.Physicians {
+		if p.User != nil {
+			personnel = append(personnel, *p.User)
+		}
+	}
+
+	for _, rcp := range clinic.Receptionists {
+		if rcp.User != nil {
+			personnel = append(personnel, *rcp.User)
+		}
+	}
+
+	for _, patient := range clinic.Patients {
+		if patient.User != nil {
+			personnel = append(personnel, *patient.User)
+		}
+	}
+
+	for _, lab := range clinic.LabTechnicians {
+		if lab.User != nil {
+			personnel = append(personnel, *lab.User)
+		}
+	}
+
+	return personnel, nil
 }

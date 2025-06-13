@@ -2,6 +2,7 @@ package clinical
 
 import (
 	"strconv"
+	"time"
 
 	"github.com/gofiber/fiber/v2"
 )
@@ -146,7 +147,6 @@ func (h *Handler) AssignServicesToClinic(c *fiber.Ctx) error {
 	})
 }
 
-// GetClinicsByEps returns clinics that accept a given EPS id with pagination support
 func (h *Handler) GetClinicsByEps(c *fiber.Ctx) error {
 	epsID := c.Params("epsId")
 	if epsID == "" {
@@ -155,7 +155,6 @@ func (h *Handler) GetClinicsByEps(c *fiber.Ctx) error {
 		})
 	}
 
-	// Parse pagination parameters, default to first page and size 10 if not provided
 	page, errPage := strconv.Atoi(c.Query("page", "1"))
 	size, errSize := strconv.Atoi(c.Query("size", "10"))
 
@@ -173,4 +172,55 @@ func (h *Handler) GetClinicsByEps(c *fiber.Ctx) error {
 	}
 
 	return c.JSON(clinics)
+}
+
+func (h *Handler) GetClinicPersonnel(c *fiber.Ctx) error {
+	clinicID := c.Params("clinicId")
+	if clinicID == "" {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+			"error": "clinic ID is required",
+		})
+	}
+
+	personnel, err := h.service.GetClinicPersonnel(clinicID)
+	if err != nil {
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+			"error": err.Error(),
+		})
+	}
+
+	type BasicUser struct {
+		ID             string    `json:"id"`
+		Name           string    `json:"name"`
+		Email          string    `json:"email"`
+		Password       string    `json:"password"`
+		Rol            string    `json:"rol"`
+		Phone          string    `json:"phone"`
+		DocumentNumber string    `json:"document_number"`
+		Status         bool      `json:"status"`
+		Gender         string    `json:"gender"`
+		CreatedAt      time.Time `json:"createdAt"`
+		UpdatedAt      time.Time `json:"updatedAt"`
+		LastLogin      time.Time `json:"lastLogin"`
+	}
+
+	var response []BasicUser
+	for _, u := range personnel {
+		response = append(response, BasicUser{
+			ID:             u.ID,
+			Name:           u.Name,
+			Email:          u.Email,
+			Password:       u.Password,
+			Rol:            u.Rol,
+			Phone:          u.Phone,
+			DocumentNumber: u.DocumentNumber,
+			Status:         u.Status,
+			Gender:         u.Gender,
+			CreatedAt:      u.CreatedAt,
+			UpdatedAt:      u.UpdatedAt,
+			LastLogin:      u.LastLogin,
+		})
+	}
+
+	return c.JSON(response)
 }

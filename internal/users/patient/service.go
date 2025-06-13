@@ -3,9 +3,10 @@ package patient
 import (
 	"Altheia-Backend/internal/users"
 	"Altheia-Backend/pkg/utils"
+	"time"
+
 	gonanoid "github.com/matoous/go-nanoid"
 	"gorm.io/gorm"
-	"time"
 )
 
 type Service interface {
@@ -15,6 +16,7 @@ type Service interface {
 	GetAllPatientsPaginated(page, limit int) (users.Pagination, error)
 	GetAllPatients() ([]users.Patient, error)
 	GetPatientByClinicId(clinicId string) ([]users.Patient, error)
+	GetPatientByClinicIdPaginated(clinicId string, page, limit int) (users.Pagination, error)
 }
 
 type service struct {
@@ -47,8 +49,14 @@ func (s *service) RegisterPatient(patient CreatePatientInfo) error {
 		DeletedAt:      gorm.DeletedAt{},
 		LastLogin:      time.Time{},
 		Patient: users.Patient{
-			ID:          patientNanoid,
-			UserID:      nanoid,
+			ID:     patientNanoid,
+			UserID: nanoid,
+			ClinicID: func() *string {
+				if patient.ClinicID != "" {
+					return &patient.ClinicID
+				}
+				return nil
+			}(),
 			DateOfBirth: patient.DateOfBirth,
 			Address:     patient.Address,
 			Eps:         patient.Eps,
@@ -110,4 +118,8 @@ func (s *service) GetPatientByClinicId(clinicId string) ([]users.Patient, error)
 		return nil, err
 	}
 	return patients, nil
+}
+
+func (s *service) GetPatientByClinicIdPaginated(clinicId string, page, limit int) (users.Pagination, error) {
+	return s.repository.GetPatientByClinicIdPaginated(clinicId, page, limit)
 }

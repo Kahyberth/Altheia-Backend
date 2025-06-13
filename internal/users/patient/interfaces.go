@@ -11,6 +11,7 @@ type CreatePatientInfo struct {
 	Address        string `json:"address"`
 	Eps            string `json:"eps"`
 	BloodType      string `json:"blood_type"`
+	ClinicID       string `json:"clinic_id"`
 }
 
 type UpdatePatientInfo struct {
