@@ -122,6 +122,25 @@ func (h *Handler) GetClinicByOwnerID(c *fiber.Ctx) error {
 	return c.JSON(clinicInfo)
 }
 
+func (h *Handler) GetClinicByID(c *fiber.Ctx) error {
+	clinicID := c.Params("clinicId")
+
+	if clinicID == "" {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+			"error": "clinic ID is required",
+		})
+	}
+
+	clinicInfo, err := h.service.GetClinicByID(clinicID)
+	if err != nil {
+		return c.Status(fiber.StatusNotFound).JSON(fiber.Map{
+			"error": err.Error(),
+		})
+	}
+
+	return c.JSON(clinicInfo)
+}
+
 func (h *Handler) AssignServicesToClinic(c *fiber.Ctx) error {
 	var dto AssignServicesClinicDTO
 	if err := c.BodyParser(&dto); err != nil {

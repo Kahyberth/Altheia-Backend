@@ -11,6 +11,7 @@ type Service interface {
 	CreateServicesOffered(servicesOffered CreateServicesDto) error
 	GetAllServicesOffered(page int, pagSize int) ([]ServicesOffered, error)
 	GetClinicByOwnerID(ownerID string) (*ClinicCompleteInfoResponse, error)
+	GetClinicByID(clinicID string) (*ClinicCompleteInfoResponse, error)
 	AssignServicesToClinic(dto AssignServicesClinicDTO) error
 	GetClinicsByEps(epsID string, page int, pageSize int) ([]Clinic, error)
 	GetClinicPersonnel(clinicID string) ([]users.User, error)
@@ -68,6 +69,10 @@ func (s *service) GetAllEps(page int, pagSize int) ([]EPS, error) {
 
 func (s *service) GetClinicByOwnerID(ownerID string) (*ClinicCompleteInfoResponse, error) {
 	return s.repo.GetClinicByOwnerID(ownerID)
+}
+
+func (s *service) GetClinicByID(clinicID string) (*ClinicCompleteInfoResponse, error) {
+	return s.repo.GetClinicByID(clinicID)
 }
 
 func (s *service) AssignServicesToClinic(dto AssignServicesClinicDTO) error {

@@ -17,6 +17,7 @@ type Repository interface {
 	GetAllServices(page int, pagSize int) ([]ServicesOffered, error)
 	CreateServices(dto CreateServicesDto) error
 	GetClinicByOwnerID(ownerID string) (*ClinicCompleteInfoResponse, error)
+	GetClinicByID(clinicID string) (*ClinicCompleteInfoResponse, error)
 	AssignServicesToClinic(dto AssignServicesClinicDTO) error
 	GetClinicsByEps(epsID string, page int, pageSize int) ([]Clinic, error)
 	GetClinicPersonnel(clinicID string) ([]users.User, error)
@@ -231,6 +232,42 @@ func (r *repository) GetClinicByOwnerID(ownerID string) (*ClinicCompleteInfoResp
 	}
 
 	if err := r.db.Where("id = ?", ownerID).First(&owner).Error; err != nil {
+		return nil, fmt.Errorf("owner user not found: %v", err)
+	}
+
+	response := &ClinicCompleteInfoResponse{
+		Clinic:      clinic,
+		Owner:       owner,
+		Information: clinic.ClinicInformation,
+	}
+
+	return response, nil
+}
+
+func (r *repository) GetClinicByID(clinicID string) (*ClinicCompleteInfoResponse, error) {
+	var clinic Clinic
+	var owner users.User
+
+	if err := r.db.
+		Preload("ClinicInformation.ServicesOffered").
+		Preload("ClinicInformation.EpsOffered").
+		Preload("ClinicInformation.Photos").
+		Preload("Physicians.User").
+		Preload("Receptionists.User").
+		Preload("LabTechnicians.User").
+		Preload("Patients.User").
+		Where("id = ?", clinicID).
+		First(&clinic).Error; err != nil {
+		return nil, fmt.Errorf("clinic not found: %v", err)
+	}
+
+	// Get the owner information
+	var clinicOwner users.ClinicOwner
+	if err := r.db.Where("clinic_id = ?", clinicID).First(&clinicOwner).Error; err != nil {
+		return nil, fmt.Errorf("clinic owner not found: %v", err)
+	}
+
+	if err := r.db.Where("id = ?", clinicOwner.UserID).First(&owner).Error; err != nil {
 		return nil, fmt.Errorf("owner user not found: %v", err)
 	}
 
