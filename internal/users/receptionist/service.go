@@ -3,9 +3,11 @@ package receptionist
 import (
 	"Altheia-Backend/internal/users"
 	"Altheia-Backend/pkg/utils"
+	"fmt"
+	"time"
+
 	gonanoid "github.com/matoous/go-nanoid"
 	"gorm.io/gorm"
-	"time"
 )
 
 type Service interface {
@@ -24,6 +26,12 @@ func NewService(r Repository) Service {
 }
 
 func (s *service) RegisterReceptionist(receptionist CreateReceptionistInfo) error {
+	if receptionist.ClinicID != "" {
+		if err := s.repo.ValidateClinicExists(receptionist.ClinicID); err != nil {
+			return fmt.Errorf("clinic not found: %v", err)
+		}
+	}
+
 	nanoid, _ := gonanoid.Nanoid()
 	receptionistNanoid, _ := gonanoid.Nanoid()
 	hashed, _ := utils.HashPassword(receptionist.Password)
@@ -45,6 +53,12 @@ func (s *service) RegisterReceptionist(receptionist CreateReceptionistInfo) erro
 		Receptionist: users.Receptionist{
 			ID:     receptionistNanoid,
 			UserID: nanoid,
+			ClinicID: func() *string {
+				if receptionist.ClinicID != "" {
+					return &receptionist.ClinicID
+				}
+				return nil
+			}(),
 			Status: true,
 		},
 	}

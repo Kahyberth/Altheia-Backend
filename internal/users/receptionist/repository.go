@@ -2,12 +2,14 @@ package receptionist
 
 import (
 	"Altheia-Backend/internal/users"
-	"gorm.io/gorm"
 	"time"
+
+	"gorm.io/gorm"
 )
 
 type Repository interface {
 	Create(user *users.User) error
+	ValidateClinicExists(clinicID string) error
 	UpdateUserAndReceptionist(UserId string, Info UpdateReceptionistInfo) error
 	SoftDelete(userId string) error
 	GetAllReceptionistPaginated(page, limit int) (users.Pagination, error)
@@ -22,7 +24,18 @@ func NewRepository(db *gorm.DB) Repository {
 }
 
 func (r *repository) Create(user *users.User) error {
-	return r.db.Create(user).Error
+	return r.db.Session(&gorm.Session{FullSaveAssociations: true}).Create(user).Error
+}
+
+func (r *repository) ValidateClinicExists(clinicID string) error {
+	var count int64
+	if err := r.db.Table("clinics").Where("id = ?", clinicID).Count(&count).Error; err != nil {
+		return err
+	}
+	if count == 0 {
+		return gorm.ErrRecordNotFound
+	}
+	return nil
 }
 
 func (r *repository) UpdateUserAndReceptionist(UserId string, Info UpdateReceptionistInfo) error {
@@ -34,13 +47,6 @@ func (r *repository) UpdateUserAndReceptionist(UserId string, Info UpdateRecepti
 				"phone":    Info.Phone,
 			}).Error; err != nil {
 		}
-
-		// No hay necesidad de actualizar la tabla receptionist, ya que no hay campos adicionales
-
-		// if err := tx.Model(&users.Receptionist{}).Where("id = ?", UserId).
-		//	Updates(map[string]interface{}{}).Error; err != nil {
-		// }
-
 		return nil
 	})
 }
