@@ -31,19 +31,27 @@ func (r *repository) Create(user *users.User) error {
 
 func (r *repository) UpdateUserAndPatient(UserId string, Info UpdatePatientInfo) error {
 	return r.db.Transaction(func(tx *gorm.DB) error {
-		if err := tx.Model(&users.User{}).Where("id = ?", UserId).
-			Updates(map[string]interface{}{
-				"name":     Info.Name,
-				"password": Info.Password,
-				"phone":    Info.Phone,
-			}).Error; err != nil {
+
+		userUpdates := map[string]interface{}{
+			"name":  Info.Name,
+			"phone": Info.Phone,
 		}
 
-		if err := tx.Model(&users.Patient{}).Where("id = ?", UserId).
+		if Info.Password != "" {
+			userUpdates["password"] = Info.Password
+		}
+
+		if err := tx.Model(&users.User{}).Where("id = ?", UserId).
+			Updates(userUpdates).Error; err != nil {
+			return err
+		}
+
+		if err := tx.Model(&users.Patient{}).Where("user_id = ?", UserId).
 			Updates(map[string]interface{}{
 				"eps":     Info.Eps,
 				"address": Info.Address,
 			}).Error; err != nil {
+			return err
 		}
 
 		return nil
@@ -59,7 +67,7 @@ func (r *repository) SoftDelete(userId string) error {
 		Status: false,
 	}
 
-	return r.db.Model(&users.Patient{}).Where("id = ?", userId).Updates(patient).Error
+	return r.db.Model(&users.Patient{}).Where("user_id = ?", userId).Updates(patient).Error
 }
 
 func (r *repository) GetAllPatientsPaginated(page, limit int) (users.Pagination, error) {

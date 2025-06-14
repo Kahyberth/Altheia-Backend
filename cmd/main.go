@@ -9,7 +9,6 @@ import (
 	"Altheia-Backend/internal/middleware"
 	"Altheia-Backend/internal/users"
 	"Altheia-Backend/internal/users/clinicOwner"
-	"Altheia-Backend/internal/users/labTechnician"
 	"Altheia-Backend/internal/users/patient"
 	"Altheia-Backend/internal/users/physician"
 	"Altheia-Backend/internal/users/receptionist"
@@ -77,11 +76,6 @@ func main() {
 	receptionistService := receptionist.NewService(receptionistRepo)
 	receptionistHandler := receptionist.NewHandler(receptionistService)
 
-	// Lab Technician handler
-	labTechnicianRepo := labTechnician.NewRepository(database)
-	labTechnicianService := labTechnician.NewService(labTechnicianRepo)
-	labTechnicianHandler := labTechnician.NewHandler(labTechnicianService)
-
 	// Appointment handler
 	appointmentRepo := appointments.NewRepository(database)
 	appointmentService := appointments.NewService(appointmentRepo)
@@ -134,11 +128,6 @@ func main() {
 	receptionistGroup.Get("/getAll", receptionistHandler.GetAllReceptionistsPaginated)
 
 	// Lab Technician routes
-	labTechnicianGroup := app.Group("/lab-technician")
-	labTechnicianGroup.Post("/register", labTechnicianHandler.RegisterLabTechnician)
-	labTechnicianGroup.Patch("/update/:id", labTechnicianHandler.UpdateLabTechnician)
-	labTechnicianGroup.Post("/delete/:id", labTechnicianHandler.SoftDeleteLabTechnician)
-	labTechnicianGroup.Get("/getAll", labTechnicianHandler.GetAllLabTechniciansPaginated)
 
 	// Clinic Owner Routes
 	clinicOwnerGroup := app.Group("/clinic-owner")

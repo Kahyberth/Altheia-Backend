@@ -40,12 +40,19 @@ func (r *repository) ValidateClinicExists(clinicID string) error {
 
 func (r *repository) UpdateUserAndReceptionist(UserId string, Info UpdateReceptionistInfo) error {
 	return r.db.Transaction(func(tx *gorm.DB) error {
+
+		userUpdates := map[string]interface{}{
+			"name":  Info.Name,
+			"phone": Info.Phone,
+		}
+
+		if Info.Password != "" {
+			userUpdates["password"] = Info.Password
+		}
+
 		if err := tx.Model(&users.User{}).Where("id = ?", UserId).
-			Updates(map[string]interface{}{
-				"name":     Info.Name,
-				"password": Info.Password,
-				"phone":    Info.Phone,
-			}).Error; err != nil {
+			Updates(userUpdates).Error; err != nil {
+			return err
 		}
 		return nil
 	})
@@ -60,7 +67,7 @@ func (r *repository) SoftDelete(userId string) error {
 		Status: false,
 	}
 
-	return r.db.Model(&users.Receptionist{}).Where("id = ?", userId).Updates(receptionist).Error
+	return r.db.Model(&users.Receptionist{}).Where("user_id = ?", userId).Updates(receptionist).Error
 }
 
 func (r *repository) GetAllReceptionistPaginated(page, limit int) (users.Pagination, error) {

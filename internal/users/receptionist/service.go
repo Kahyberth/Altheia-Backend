@@ -69,12 +69,14 @@ func (s *service) RegisterReceptionist(receptionist CreateReceptionistInfo) erro
 }
 
 func (s *service) UpdateReceptionist(userId string, receptionistData UpdateReceptionistInfo) error {
-	hashed, _ := utils.HashPassword(receptionistData.Password)
-
 	updatedReceptionist := UpdateReceptionistInfo{
-		Name:     receptionistData.Name,
-		Password: hashed,
-		Phone:    receptionistData.Phone,
+		Name:  receptionistData.Name,
+		Phone: receptionistData.Phone,
+	}
+
+	if receptionistData.Password != "" {
+		hashed, _ := utils.HashPassword(receptionistData.Password)
+		updatedReceptionist.Password = hashed
 	}
 
 	receptionist := s.repo.UpdateUserAndReceptionist(userId, updatedReceptionist)

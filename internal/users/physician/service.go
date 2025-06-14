@@ -80,19 +80,20 @@ func (s *service) RegisterPhysician(physician CreatePhysicianInfo) error {
 }
 
 func (s *service) UpdatePhysician(userId string, physicianData UpdatePhysicianInfo) error {
-	hashed, _ := utils.HashPassword(physicianData.Password)
-
 	updatedPhysician := UpdatePhysicianInfo{
 		Name:               physicianData.Name,
-		Password:           hashed,
 		Phone:              physicianData.Phone,
 		PhysicianSpecialty: physicianData.PhysicianSpecialty,
+	}
+
+	if physicianData.Password != "" {
+		hashed, _ := utils.HashPassword(physicianData.Password)
+		updatedPhysician.Password = hashed
 	}
 
 	physician := s.repo.UpdateUserAndPhysician(userId, updatedPhysician)
 
 	return physician
-
 }
 
 func (s *service) SoftDeletePhysician(userId string) error {

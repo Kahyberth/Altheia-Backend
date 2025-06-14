@@ -74,15 +74,18 @@ func (s *service) RegisterPatient(patient CreatePatientInfo) error {
 }
 
 func (s *service) UpdatePatient(userId string, patientData UpdatePatientInfo) error {
-	hashed, _ := utils.HashPassword(patientData.Password)
-
 	updatedPatient := UpdatePatientInfo{
-		Name:     patientData.Name,
-		Password: hashed,
-		Phone:    patientData.Phone,
-		Address:  patientData.Address,
-		Eps:      patientData.Eps,
+		Name:    patientData.Name,
+		Phone:   patientData.Phone,
+		Address: patientData.Address,
+		Eps:     patientData.Eps,
 	}
+
+	if patientData.Password != "" {
+		hashed, _ := utils.HashPassword(patientData.Password)
+		updatedPatient.Password = hashed
+	}
+
 	patient := s.repository.UpdateUserAndPatient(userId, updatedPatient)
 
 	return patient
