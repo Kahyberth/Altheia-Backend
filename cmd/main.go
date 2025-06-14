@@ -35,6 +35,7 @@ func main() {
 		&users.Receptionist{},
 		&users.ClinicOwner{},
 		&users.LabTechnician{},
+		&users.LoginActivity{},
 
 		&clinical.MedicalHistory{},
 		&clinical.MedicalConsultation{},
@@ -148,7 +149,10 @@ func main() {
 	authGroup.Post("/logout", authHandler.Logout)
 	authGroup.Get("/verify-token", authHandler.VerifyToken)
 	authGroup.Get("/user/:id", authHandler.GetUserDetails)
+	authGroup.Get("/user/:id/login-activities", authHandler.GetUserLoginActivities)
+
 	authGroup.Use(middleware.JWTProtected())
+	authGroup.Post("/change-password", authHandler.ChangePassword)
 	authGroup.Post("/refresh-token/:refresh_token", authHandler.RefreshTokenH)
 
 	profile := app.Group("/profile")

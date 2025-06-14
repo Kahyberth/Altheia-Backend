@@ -334,9 +334,13 @@ func (r *repository) GetClinicPersonnel(clinicID string) ([]users.User, error) {
 
 	if err := r.db.
 		Preload("Physicians.User").
+		Preload("Physicians").
 		Preload("Receptionists.User").
+		Preload("Receptionists").
 		Preload("Patients.User").
+		Preload("Patients").
 		Preload("LabTechnicians.User").
+		Preload("LabTechnicians").
 		Where("id = ?", clinicID).
 		First(&clinic).Error; err != nil {
 		return nil, err
@@ -346,25 +350,33 @@ func (r *repository) GetClinicPersonnel(clinicID string) ([]users.User, error) {
 
 	for _, p := range clinic.Physicians {
 		if p.User != nil {
-			personnel = append(personnel, *p.User)
+			user := *p.User
+			user.Physician = p
+			personnel = append(personnel, user)
 		}
 	}
 
 	for _, rcp := range clinic.Receptionists {
 		if rcp.User != nil {
-			personnel = append(personnel, *rcp.User)
+			user := *rcp.User
+			user.Receptionist = rcp
+			personnel = append(personnel, user)
 		}
 	}
 
 	for _, patient := range clinic.Patients {
 		if patient.User != nil {
-			personnel = append(personnel, *patient.User)
+			user := *patient.User
+			user.Patient = patient
+			personnel = append(personnel, user)
 		}
 	}
 
 	for _, lab := range clinic.LabTechnicians {
 		if lab.User != nil {
-			personnel = append(personnel, *lab.User)
+			user := *lab.User
+			user.LabTechnician = lab
+			personnel = append(personnel, user)
 		}
 	}
 

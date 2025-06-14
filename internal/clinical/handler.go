@@ -2,7 +2,6 @@ package clinical
 
 import (
 	"strconv"
-	"time"
 
 	"github.com/gofiber/fiber/v2"
 )
@@ -201,45 +200,12 @@ func (h *Handler) GetClinicPersonnel(c *fiber.Ctx) error {
 		})
 	}
 
-	personnel, err := h.service.GetClinicPersonnel(clinicID)
+	personnelResponse, err := h.service.GetClinicPersonnel(clinicID)
 	if err != nil {
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
 			"error": err.Error(),
 		})
 	}
 
-	type BasicUser struct {
-		ID             string    `json:"id"`
-		Name           string    `json:"name"`
-		Email          string    `json:"email"`
-		Password       string    `json:"password"`
-		Rol            string    `json:"rol"`
-		Phone          string    `json:"phone"`
-		DocumentNumber string    `json:"document_number"`
-		Status         bool      `json:"status"`
-		Gender         string    `json:"gender"`
-		CreatedAt      time.Time `json:"createdAt"`
-		UpdatedAt      time.Time `json:"updatedAt"`
-		LastLogin      time.Time `json:"lastLogin"`
-	}
-
-	var response []BasicUser
-	for _, u := range personnel {
-		response = append(response, BasicUser{
-			ID:             u.ID,
-			Name:           u.Name,
-			Email:          u.Email,
-			Password:       u.Password,
-			Rol:            u.Rol,
-			Phone:          u.Phone,
-			DocumentNumber: u.DocumentNumber,
-			Status:         u.Status,
-			Gender:         u.Gender,
-			CreatedAt:      u.CreatedAt,
-			UpdatedAt:      u.UpdatedAt,
-			LastLogin:      u.LastLogin,
-		})
-	}
-
-	return c.JSON(response)
+	return c.JSON(personnelResponse)
 }

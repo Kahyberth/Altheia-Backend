@@ -119,3 +119,23 @@ type Photo struct {
 	URL      string `json:"url"`
 	ClinicID string `json:"clinic_id"`
 }
+
+type PersonnelResponse struct {
+	ID             string                 `json:"id"`
+	Name           string                 `json:"name"`
+	Email          string                 `json:"email"`
+	Role           string                 `json:"role"`
+	Phone          string                 `json:"phone"`
+	DocumentNumber string                 `json:"document_number"`
+	Status         bool                   `json:"status"`
+	Gender         string                 `json:"gender"`
+	CreatedAt      time.Time              `json:"created_at"`
+	UpdatedAt      time.Time              `json:"updated_at"`
+	LastLogin      time.Time              `json:"last_login"`
+	RoleDetails    map[string]interface{} `json:"role_details"`
+}
+
+type ClinicPersonnelResponse struct {
+	Personnel []PersonnelResponse `json:"personnel"`
+	Count     int                 `json:"count"`
+}

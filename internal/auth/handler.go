@@ -4,6 +4,7 @@ import (
 	"Altheia-Backend/internal/users"
 	"Altheia-Backend/pkg/utils"
 	"fmt"
+	"strconv"
 	"time"
 
 	"github.com/gofiber/fiber/v2"
@@ -23,9 +24,16 @@ func (h *Handler) Login(c *fiber.Ctx) error {
 		return c.Status(400).JSON(fiber.Map{"error": "cannot parse JSON"})
 	}
 
+	userAgent := c.Get("User-Agent")
+	ipAddress := utils.GetClientIP(
+		c.Get("X-Forwarded-For"),
+		c.Get("X-Real-IP"),
+		c.IP(),
+	)
+
 	var user UserInfo
 
-	user, accessToken, refreshToken, err := h.service.Login(data.Email, data.Password)
+	user, accessToken, refreshToken, err := h.service.LoginWithActivity(data.Email, data.Password, userAgent, ipAddress)
 
 	if err != nil {
 		return c.Status(401).JSON(fiber.Map{"error": err.Error()})
@@ -122,4 +130,53 @@ func (h *Handler) GetUserDetails(c *fiber.Ctx) error {
 	}
 
 	return c.JSON(userDetails)
+}
+
+func (h *Handler) ChangePassword(c *fiber.Ctx) error {
+	userID := c.Locals("user_id")
+	if userID == nil {
+		return c.Status(401).JSON(fiber.Map{"error": "Unauthorized"})
+	}
+
+	userIDStr, ok := userID.(string)
+	if !ok {
+		return c.Status(401).JSON(fiber.Map{"error": "Invalid user ID"})
+	}
+
+	var request ChangePasswordRequest
+	if err := c.BodyParser(&request); err != nil {
+		return c.Status(400).JSON(fiber.Map{"error": "Invalid request body"})
+	}
+
+	if err := h.service.ChangePassword(userIDStr, request); err != nil {
+		return c.Status(400).JSON(fiber.Map{"error": err.Error()})
+	}
+
+	return c.JSON(fiber.Map{"message": "Password changed successfully"})
+}
+
+func (h *Handler) GetUserLoginActivities(c *fiber.Ctx) error {
+	userID := c.Params("id")
+	if userID == "" {
+		return c.Status(400).JSON(fiber.Map{"error": "User ID is required"})
+	}
+
+	limit := 10
+	if limitParam := c.Query("limit"); limitParam != "" {
+		if parsedLimit, err := strconv.Atoi(limitParam); err == nil {
+			if parsedLimit > 0 && parsedLimit <= 50 {
+				limit = parsedLimit
+			}
+		}
+	}
+
+	activities, err := h.service.GetUserLoginActivities(userID, limit)
+	if err != nil {
+		return c.Status(500).JSON(fiber.Map{"error": "Failed to retrieve login activities"})
+	}
+
+	return c.JSON(fiber.Map{
+		"activities": activities,
+		"count":      len(activities),
+	})
 }

@@ -5,12 +5,16 @@ import (
 	"Altheia-Backend/pkg/utils"
 	"errors"
 	"fmt"
+	"time"
 )
 
 type Service interface {
 	Login(email, password string) (UserInfo, string, string, error)
+	LoginWithActivity(email, password, userAgent, ipAddress string) (UserInfo, string, string, error)
 	GetProfile(id string) (*users.User, error)
 	GetUserDetails(id string) (UserDetailsResponse, error)
+	GetUserLoginActivities(userID string, limit int) ([]users.LoginActivity, error)
+	ChangePassword(id string, request ChangePasswordRequest) error
 	verifyToken(token string) (UserInfo, string, error)
 }
 
@@ -36,7 +40,13 @@ type UserDetailsResponse struct {
 	Status         bool                   `json:"status"`
 	Gender         string                 `json:"gender"`
 	ClinicId       string                 `json:"clinic_id"`
+	LastLogin      string                 `json:"last_login"`
 	RoleDetails    map[string]interface{} `json:"role_details"`
+}
+
+type ChangePasswordRequest struct {
+	CurrentPassword string `json:"current_password"`
+	NewPassword     string `json:"new_password"`
 }
 
 func NewService(r Repository) Service {
@@ -64,6 +74,11 @@ func (s *service) getClinicIDFromUser(user *users.User) string {
 }
 
 func (s *service) Login(email, password string) (UserInfo, string, string, error) {
+
+	return s.LoginWithActivity(email, password, "", "")
+}
+
+func (s *service) LoginWithActivity(email, password, userAgent, ipAddress string) (UserInfo, string, string, error) {
 	user, err := s.repo.FindByEmail(email)
 
 	if err != nil || !utils.CheckPasswordHash(password, user.Password) {
@@ -78,6 +93,26 @@ func (s *service) Login(email, password string) (UserInfo, string, string, error
 	refreshToken, refreshError := utils.GenerateJWT(user.ID, 72)
 	if refreshError != nil {
 		return UserInfo{}, "", "", refreshError
+	}
+
+	s.repo.UpdateLastLogin(user.ID)
+
+	s.repo.MarkAllSessionsAsInactive(user.ID)
+
+	if userAgent != "" || ipAddress != "" {
+		loginActivity := &users.LoginActivity{
+			ID:               utils.GenerateNanoID(),
+			UserID:           user.ID,
+			DeviceType:       utils.GetDeviceTypeFromUserAgent(userAgent),
+			IPAddress:        ipAddress,
+			Location:         utils.GetLocationFromIP(ipAddress),
+			LoginTime:        time.Now(),
+			IsCurrentSession: true,
+			UserAgent:        userAgent,
+			CreatedAt:        time.Now(),
+			UpdatedAt:        time.Now(),
+		}
+		s.repo.CreateLoginActivity(loginActivity)
 	}
 
 	userInfo := UserInfo{
@@ -139,6 +174,7 @@ func (s *service) GetUserDetails(id string) (UserDetailsResponse, error) {
 		Status:         user.Status,
 		Gender:         user.Gender,
 		ClinicId:       clinicID,
+		LastLogin:      user.LastLogin.Format("2006-01-02 15:04:05"),
 		RoleDetails:    roleDetails,
 	}
 
@@ -165,4 +201,31 @@ func (s *service) verifyToken(token string) (UserInfo, string, error) {
 	}
 
 	return userInfo, token, nil
+}
+
+func (s *service) ChangePassword(id string, request ChangePasswordRequest) error {
+
+	if request.CurrentPassword == "" || request.NewPassword == "" {
+		return errors.New("current password and new password are required")
+	}
+
+	user, err := s.repo.FindByID(id)
+	if err != nil {
+		return errors.New("user not found")
+	}
+
+	if !utils.CheckPasswordHash(request.CurrentPassword, user.Password) {
+		return errors.New("current password is incorrect")
+	}
+
+	hashedNewPassword, err := utils.HashPassword(request.NewPassword)
+	if err != nil {
+		return errors.New("failed to hash new password")
+	}
+
+	return s.repo.ChangePassword(id, hashedNewPassword)
+}
+
+func (s *service) GetUserLoginActivities(userID string, limit int) ([]users.LoginActivity, error) {
+	return s.repo.GetUserLoginActivities(userID, limit)
 }

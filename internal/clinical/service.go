@@ -1,9 +1,5 @@
 package clinical
 
-import (
-	"Altheia-Backend/internal/users"
-)
-
 type Service interface {
 	CreateClinical(createClinicDto CreateClinicDTO) error
 	CreateEps(epsDto CreateEpsDto) error
@@ -14,7 +10,7 @@ type Service interface {
 	GetClinicByID(clinicID string) (*ClinicCompleteInfoResponse, error)
 	AssignServicesToClinic(dto AssignServicesClinicDTO) error
 	GetClinicsByEps(epsID string, page int, pageSize int) ([]Clinic, error)
-	GetClinicPersonnel(clinicID string) ([]users.User, error)
+	GetClinicPersonnel(clinicID string) (ClinicPersonnelResponse, error)
 }
 
 type service struct {
@@ -87,6 +83,68 @@ func (s *service) GetClinicsByEps(epsID string, page int, pageSize int) ([]Clini
 	return s.repo.GetClinicsByEps(epsID, page, pageSize)
 }
 
-func (s *service) GetClinicPersonnel(clinicID string) ([]users.User, error) {
-	return s.repo.GetClinicPersonnel(clinicID)
+func (s *service) GetClinicPersonnel(clinicID string) (ClinicPersonnelResponse, error) {
+	users, err := s.repo.GetClinicPersonnel(clinicID)
+	if err != nil {
+		return ClinicPersonnelResponse{}, err
+	}
+
+	var personnel []PersonnelResponse
+	for _, user := range users {
+		roleDetails := make(map[string]interface{})
+
+		// Extract role-specific details based on user role
+		switch user.Rol {
+		case "patient":
+			roleDetails = map[string]interface{}{
+				"patient_id":    user.Patient.ID,
+				"date_of_birth": user.Patient.DateOfBirth,
+				"address":       user.Patient.Address,
+				"eps":           user.Patient.Eps,
+				"blood_type":    user.Patient.BloodType,
+				"clinic_id":     user.Patient.ClinicID,
+			}
+		case "physician":
+			roleDetails = map[string]interface{}{
+				"physician_id":        user.Physician.ID,
+				"physician_specialty": user.Physician.PhysicianSpecialty,
+				"license_number":      user.Physician.LicenseNumber,
+				"clinic_id":           user.Physician.ClinicID,
+			}
+		case "receptionist":
+			roleDetails = map[string]interface{}{
+				"receptionist_id": user.Receptionist.ID,
+				"clinic_id":       user.Receptionist.ClinicID,
+			}
+		case "lab_technician":
+			roleDetails = map[string]interface{}{
+				"lab_technician_id": user.LabTechnician.ID,
+				"clinic_id":         user.LabTechnician.ClinicID,
+			}
+		}
+
+		personnelItem := PersonnelResponse{
+			ID:             user.ID,
+			Name:           user.Name,
+			Email:          user.Email,
+			Role:           user.Rol,
+			Phone:          user.Phone,
+			DocumentNumber: user.DocumentNumber,
+			Status:         user.Status,
+			Gender:         user.Gender,
+			CreatedAt:      user.CreatedAt,
+			UpdatedAt:      user.UpdatedAt,
+			LastLogin:      user.LastLogin,
+			RoleDetails:    roleDetails,
+		}
+
+		personnel = append(personnel, personnelItem)
+	}
+
+	response := ClinicPersonnelResponse{
+		Personnel: personnel,
+		Count:     len(personnel),
+	}
+
+	return response, nil
 }
