@@ -3,12 +3,14 @@ package auth
 import (
 	"Altheia-Backend/internal/users"
 	"fmt"
+
 	"gorm.io/gorm"
 )
 
 type Repository interface {
 	FindByEmail(email string) (*users.User, error)
 	FindByID(id string) (*users.User, error)
+	GetUserWithAllDetails(id string) (*users.User, error)
 }
 
 type repository struct {
@@ -21,13 +23,19 @@ func NewRepository(db *gorm.DB) Repository {
 
 func (r *repository) FindByEmail(email string) (*users.User, error) {
 	var user users.User
-	err := r.db.Where("email = ?", email).First(&user).Error
+	err := r.db.Preload("Patient").Preload("Physician").Preload("Receptionist").Preload("ClinicOwner").Where("email = ?", email).First(&user).Error
 	return &user, err
 }
 
 func (r *repository) FindByID(id string) (*users.User, error) {
 	var user users.User
 	fmt.Print("ID del usuario desde repository: ", id)
-	err := r.db.Where("id = ?", id).First(&user).Error
+	err := r.db.Preload("Patient").Preload("Physician").Preload("Receptionist").Preload("ClinicOwner").Where("id = ?", id).First(&user).Error
+	return &user, err
+}
+
+func (r *repository) GetUserWithAllDetails(id string) (*users.User, error) {
+	var user users.User
+	err := r.db.Preload("Patient").Preload("Physician").Preload("Receptionist").Preload("ClinicOwner").Where("id = ?", id).First(&user).Error
 	return &user, err
 }

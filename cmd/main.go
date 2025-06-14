@@ -146,6 +146,7 @@ func main() {
 	authGroup.Post("/login", authHandler.Login)
 	authGroup.Post("/logout", authHandler.Logout)
 	authGroup.Get("/verify-token", authHandler.VerifyToken)
+	authGroup.Get("/user/:id", authHandler.GetUserDetails)
 	authGroup.Use(middleware.JWTProtected())
 	authGroup.Post("/refresh-token/:refresh_token", authHandler.RefreshTokenH)
 

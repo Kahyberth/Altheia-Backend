@@ -4,8 +4,9 @@ import (
 	"Altheia-Backend/internal/users"
 	"Altheia-Backend/pkg/utils"
 	"fmt"
-	"github.com/gofiber/fiber/v2"
 	"time"
+
+	"github.com/gofiber/fiber/v2"
 )
 
 type Handler struct {
@@ -107,4 +108,18 @@ func (h *Handler) VerifyToken(c *fiber.Ctx) error {
 		"userInfo": data,
 		"token":    token,
 	})
+}
+
+func (h *Handler) GetUserDetails(c *fiber.Ctx) error {
+	userID := c.Params("id")
+	if userID == "" {
+		return c.Status(400).JSON(fiber.Map{"error": "User ID is required"})
+	}
+
+	userDetails, err := h.service.GetUserDetails(userID)
+	if err != nil {
+		return c.Status(404).JSON(fiber.Map{"error": "User not found"})
+	}
+
+	return c.JSON(userDetails)
 }
