@@ -15,6 +15,7 @@ type Service interface {
 	GetUserDetails(id string) (UserDetailsResponse, error)
 	GetUserLoginActivities(userID string, limit int) ([]users.LoginActivity, error)
 	ChangePassword(id string, request ChangePasswordRequest) error
+	DeleteUserCompletely(userID string) error
 	verifyToken(token string) (UserInfo, string, error)
 }
 
@@ -228,4 +229,8 @@ func (s *service) ChangePassword(id string, request ChangePasswordRequest) error
 
 func (s *service) GetUserLoginActivities(userID string, limit int) ([]users.LoginActivity, error) {
 	return s.repo.GetUserLoginActivities(userID, limit)
+}
+
+func (s *service) DeleteUserCompletely(userID string) error {
+	return s.repo.DeleteUserCompletely(userID)
 }

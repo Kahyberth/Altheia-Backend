@@ -180,3 +180,42 @@ func (h *Handler) GetUserLoginActivities(c *fiber.Ctx) error {
 		"count":      len(activities),
 	})
 }
+
+func (h *Handler) DeleteUserCompletely(c *fiber.Ctx) error {
+	userID := c.Params("id")
+	if userID == "" {
+		return c.Status(400).JSON(fiber.Map{"error": "User ID is required"})
+	}
+
+	if err := h.service.DeleteUserCompletely(userID); err != nil {
+		return c.Status(500).JSON(fiber.Map{"error": err.Error()})
+	}
+
+	return c.JSON(fiber.Map{
+		"message": "User and all related data deleted successfully",
+		"user_id": userID,
+	})
+}
+
+func (h *Handler) CheckUserExists(c *fiber.Ctx) error {
+	userID := c.Params("id")
+	if userID == "" {
+		return c.Status(400).JSON(fiber.Map{"error": "User ID is required"})
+	}
+
+	user, err := h.service.GetProfile(userID)
+	if err != nil {
+		return c.Status(404).JSON(fiber.Map{
+			"exists":  false,
+			"user_id": userID,
+			"error":   "User not found",
+		})
+	}
+
+	return c.JSON(fiber.Map{
+		"exists":    true,
+		"user_id":   userID,
+		"user_name": user.Name,
+		"user_role": user.Rol,
+	})
+}

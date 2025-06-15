@@ -150,6 +150,8 @@ func main() {
 	authGroup.Get("/verify-token", authHandler.VerifyToken)
 	authGroup.Get("/user/:id", authHandler.GetUserDetails)
 	authGroup.Get("/user/:id/login-activities", authHandler.GetUserLoginActivities)
+	authGroup.Get("/user/:id/exists", authHandler.CheckUserExists)
+	authGroup.Delete("/user/:id", authHandler.DeleteUserCompletely)
 
 	authGroup.Use(middleware.JWTProtected())
 	authGroup.Post("/change-password", authHandler.ChangePassword)
