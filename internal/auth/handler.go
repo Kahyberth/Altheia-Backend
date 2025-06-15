@@ -219,3 +219,63 @@ func (h *Handler) CheckUserExists(c *fiber.Ctx) error {
 		"user_role": user.Rol,
 	})
 }
+
+func (h *Handler) DeactivateUser(c *fiber.Ctx) error {
+	userID := c.Params("id")
+	if userID == "" {
+		return c.Status(400).JSON(fiber.Map{"error": "User ID is required"})
+	}
+
+	user, err := h.service.GetProfile(userID)
+	if err != nil {
+		return c.Status(404).JSON(fiber.Map{"error": "User not found"})
+	}
+
+	if !user.Status {
+		return c.Status(400).JSON(fiber.Map{
+			"error":   "User is already deactivated",
+			"user_id": userID,
+		})
+	}
+
+	if err := h.service.DeactivateUser(userID); err != nil {
+		return c.Status(500).JSON(fiber.Map{"error": err.Error()})
+	}
+
+	return c.JSON(fiber.Map{
+		"message":   "User account deactivated successfully",
+		"user_id":   userID,
+		"user_name": user.Name,
+		"status":    "deactivated",
+	})
+}
+
+func (h *Handler) ReactivateUser(c *fiber.Ctx) error {
+	userID := c.Params("id")
+	if userID == "" {
+		return c.Status(400).JSON(fiber.Map{"error": "User ID is required"})
+	}
+
+	user, err := h.service.GetProfile(userID)
+	if err != nil {
+		return c.Status(404).JSON(fiber.Map{"error": "User not found"})
+	}
+
+	if user.Status {
+		return c.Status(400).JSON(fiber.Map{
+			"error":   "User is already active",
+			"user_id": userID,
+		})
+	}
+
+	if err := h.service.ReactivateUser(userID); err != nil {
+		return c.Status(500).JSON(fiber.Map{"error": err.Error()})
+	}
+
+	return c.JSON(fiber.Map{
+		"message":   "User account reactivated successfully",
+		"user_id":   userID,
+		"user_name": user.Name,
+		"status":    "active",
+	})
+}

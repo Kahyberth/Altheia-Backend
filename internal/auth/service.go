@@ -16,6 +16,8 @@ type Service interface {
 	GetUserLoginActivities(userID string, limit int) ([]users.LoginActivity, error)
 	ChangePassword(id string, request ChangePasswordRequest) error
 	DeleteUserCompletely(userID string) error
+	DeactivateUser(userID string) error
+	ReactivateUser(userID string) error
 	verifyToken(token string) (UserInfo, string, error)
 }
 
@@ -84,6 +86,10 @@ func (s *service) LoginWithActivity(email, password, userAgent, ipAddress string
 
 	if err != nil || !utils.CheckPasswordHash(password, user.Password) {
 		return UserInfo{}, "", "", errors.New("invalid credentials")
+	}
+
+	if !user.Status {
+		return UserInfo{}, "", "", errors.New("account is deactivated. Please contact support")
 	}
 
 	accessToken, tokenError := utils.GenerateJWT(user.ID, 1)
@@ -233,4 +239,12 @@ func (s *service) GetUserLoginActivities(userID string, limit int) ([]users.Logi
 
 func (s *service) DeleteUserCompletely(userID string) error {
 	return s.repo.DeleteUserCompletely(userID)
+}
+
+func (s *service) DeactivateUser(userID string) error {
+	return s.repo.DeactivateUser(userID)
+}
+
+func (s *service) ReactivateUser(userID string) error {
+	return s.repo.ReactivateUser(userID)
 }

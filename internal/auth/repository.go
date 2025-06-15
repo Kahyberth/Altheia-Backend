@@ -20,6 +20,8 @@ type Repository interface {
 	GetUserLoginActivities(userID string, limit int) ([]users.LoginActivity, error)
 	MarkAllSessionsAsInactive(userID string) error
 	DeleteUserCompletely(userID string) error
+	DeactivateUser(userID string) error
+	ReactivateUser(userID string) error
 }
 
 type repository struct {
@@ -206,4 +208,12 @@ func (r *repository) DeleteUserCompletely(userID string) error {
 		fmt.Printf("Successfully deleted user %s and all related data\n", userID)
 		return nil
 	})
+}
+
+func (r *repository) DeactivateUser(userID string) error {
+	return r.db.Model(&users.User{}).Where("id = ?", userID).Update("status", false).Error
+}
+
+func (r *repository) ReactivateUser(userID string) error {
+	return r.db.Model(&users.User{}).Where("id = ?", userID).Update("status", true).Error
 }

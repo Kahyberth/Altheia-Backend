@@ -152,6 +152,8 @@ func main() {
 	authGroup.Get("/user/:id/login-activities", authHandler.GetUserLoginActivities)
 	authGroup.Get("/user/:id/exists", authHandler.CheckUserExists)
 	authGroup.Delete("/user/:id", authHandler.DeleteUserCompletely)
+	authGroup.Patch("/user/:id/deactivate", authHandler.DeactivateUser)
+	authGroup.Patch("/user/:id/reactivate", authHandler.ReactivateUser)
 
 	authGroup.Use(middleware.JWTProtected())
 	authGroup.Post("/change-password", authHandler.ChangePassword)
