@@ -21,6 +21,12 @@ type Repository interface {
 	AssignServicesToClinic(dto AssignServicesClinicDTO) error
 	GetClinicsByEps(epsID string, page int, pageSize int) ([]Clinic, error)
 	GetClinicPersonnel(clinicID string) ([]users.User, error)
+
+	GetMedicalHistoryByPatientID(patientID string) (*MedicalHistoryResponseDTO, error)
+	CreateMedicalHistory(dto CreateMedicalHistoryDTO) error
+	CreateConsultation(dto CreateConsultationDTO) error
+	GetOrCreateMedicalHistory(patientID string) (*MedicalHistory, error)
+	UpdateMedicalHistory(historyID string, dto UpdateMedicalHistoryDTO) error
 }
 
 type repository struct {
@@ -381,4 +387,275 @@ func (r *repository) GetClinicPersonnel(clinicID string) ([]users.User, error) {
 	}
 
 	return personnel, nil
+}
+
+func (r *repository) GetMedicalHistoryByPatientID(patientID string) (*MedicalHistoryResponseDTO, error) {
+	var medicalHistory MedicalHistory
+	var patient users.Patient
+
+	if err := r.db.Preload("User").Where("id = ?", patientID).First(&patient).Error; err != nil {
+		return nil, fmt.Errorf("patient not found: %v", err)
+	}
+
+	err := r.db.
+		Preload("Consultations.Physician.User").
+		Preload("Consultations.Prescriptions").
+		Where("patient_id = ?", patientID).
+		First(&medicalHistory).Error
+
+	if err != nil {
+		if err == gorm.ErrRecordNotFound {
+			return &MedicalHistoryResponseDTO{
+				ID:                 patientID + "_empty",
+				PatientId:          patientID,
+				PatientName:        patient.User.Name,
+				ConsultReason:      "",
+				PersonalInfo:       "",
+				FamilyInfo:         "",
+				Allergies:          "",
+				Observations:       "",
+				LastUpdate:         time.Now(),
+				CreatedAt:          time.Now(),
+				UpdatedAt:          time.Now(),
+				Consultations:      []EnhancedConsultationResponseDTO{},
+				TotalConsultations: 0,
+			}, nil
+		}
+		return nil, fmt.Errorf("error fetching medical history: %v", err)
+	}
+
+	response := &MedicalHistoryResponseDTO{
+		ID:                 medicalHistory.ID,
+		PatientId:          medicalHistory.PatientId,
+		PatientName:        patient.User.Name,
+		ConsultReason:      medicalHistory.ConsultReason,
+		PersonalInfo:       medicalHistory.PersonalInfo,
+		FamilyInfo:         medicalHistory.FamilyInfo,
+		Allergies:          medicalHistory.Allergies,
+		Observations:       medicalHistory.Observations,
+		LastUpdate:         medicalHistory.LastUpdate,
+		CreatedAt:          medicalHistory.CreatedAt,
+		UpdatedAt:          medicalHistory.UpdatedAt,
+		Consultations:      []EnhancedConsultationResponseDTO{},
+		TotalConsultations: len(medicalHistory.Consultations),
+	}
+
+	for _, consultation := range medicalHistory.Consultations {
+		consultationDTO := EnhancedConsultationResponseDTO{
+			ID:               consultation.ID,
+			MedicalHistoryId: consultation.MedicalHistoryId,
+			Symptoms:         consultation.Symptoms,
+			Diagnosis:        consultation.Diagnosis,
+			Treatment:        consultation.Treatment,
+			Notes:            consultation.Notes,
+			PhysicianInfo:    PhysicianInfoDTO{},
+			Metadata: ConsultationMetadata{
+				CreatedAt:   consultation.CreatedAt,
+				UpdatedAt:   consultation.UpdatedAt,
+				ConsultDate: consultation.ConsultDate,
+			},
+			Prescriptions: []PrescriptionResponseDTO{},
+		}
+
+		if consultation.Physician.User != nil {
+			consultationDTO.PhysicianInfo = PhysicianInfoDTO{
+				ID:                 consultation.Physician.User.ID,
+				Name:               consultation.Physician.User.Name,
+				Email:              consultation.Physician.User.Email,
+				Phone:              consultation.Physician.User.Phone,
+				DocumentNumber:     consultation.Physician.User.DocumentNumber,
+				PhysicianSpecialty: consultation.Physician.PhysicianSpecialty,
+				LicenseNumber:      consultation.Physician.LicenseNumber,
+				Gender:             consultation.Physician.User.Gender,
+			}
+		}
+
+		for _, prescription := range consultation.Prescriptions {
+			consultationDTO.Prescriptions = append(consultationDTO.Prescriptions, PrescriptionResponseDTO{
+				ID:             prescription.ID,
+				ConsultationId: prescription.ConsultationId,
+				Medicine:       prescription.Medicine,
+				Dosage:         prescription.Dosage,
+				Frequency:      prescription.Frequency,
+				Duration:       prescription.Duration,
+				Instructions:   prescription.Instructions,
+				IssuedAt:       prescription.IssuedAt,
+				CreatedAt:      prescription.CreatedAt,
+				UpdatedAt:      prescription.UpdatedAt,
+			})
+		}
+
+		response.Consultations = append(response.Consultations, consultationDTO)
+	}
+
+	return response, nil
+}
+
+func (r *repository) CreateMedicalHistory(dto CreateMedicalHistoryDTO) error {
+
+	var patient users.Patient
+	if err := r.db.Where("id = ?", dto.PatientId).First(&patient).Error; err != nil {
+		return fmt.Errorf("patient not found: %v", err)
+	}
+
+	var existingHistory MedicalHistory
+	if err := r.db.Where("patient_id = ?", dto.PatientId).First(&existingHistory).Error; err == nil {
+		return fmt.Errorf("medical history already exists for this patient")
+	}
+
+	nanoid, _ := gonanoid.Nanoid()
+	medicalHistory := MedicalHistory{
+		ID:            nanoid,
+		PatientId:     dto.PatientId,
+		ConsultReason: dto.ConsultReason,
+		PersonalInfo:  dto.PersonalInfo,
+		FamilyInfo:    dto.FamilyInfo,
+		Allergies:     dto.Allergies,
+		Observations:  dto.Observations,
+		LastUpdate:    time.Now(),
+	}
+
+	return r.db.Create(&medicalHistory).Error
+}
+
+func (r *repository) CreateConsultation(dto CreateConsultationDTO) error {
+	return r.db.Transaction(func(tx *gorm.DB) error {
+
+		var patient users.Patient
+		if err := tx.Where("id = ?", dto.PatientId).First(&patient).Error; err != nil {
+			return fmt.Errorf("patient not found: %v", err)
+		}
+
+		var physician users.Physician
+		if err := tx.Where("id = ?", dto.PhysicianId).First(&physician).Error; err != nil {
+			return fmt.Errorf("physician not found: %v", err)
+		}
+
+		medicalHistory, err := r.getOrCreateMedicalHistoryTx(tx, dto.PatientId)
+		if err != nil {
+			return err
+		}
+
+		if dto.UpdateMedicalHistory {
+			updates := map[string]interface{}{}
+			if dto.ConsultReason != "" {
+				updates["consult_reason"] = dto.ConsultReason
+			}
+			if dto.PersonalInfo != "" {
+				updates["personal_info"] = dto.PersonalInfo
+			}
+			if dto.FamilyInfo != "" {
+				updates["family_info"] = dto.FamilyInfo
+			}
+			if dto.Allergies != "" {
+				updates["allergies"] = dto.Allergies
+			}
+			if dto.Observations != "" {
+				updates["observations"] = dto.Observations
+			}
+
+			if len(updates) > 0 {
+				updates["last_update"] = time.Now()
+				if err := tx.Model(&medicalHistory).Updates(updates).Error; err != nil {
+					return fmt.Errorf("error updating medical history: %v", err)
+				}
+			}
+		}
+
+		consultationID, _ := gonanoid.Nanoid()
+		consultation := MedicalConsultation{
+			ID:               consultationID,
+			MedicalHistoryId: medicalHistory.ID,
+			PhysicianId:      dto.PhysicianId,
+			ConsultDate:      time.Now(),
+			Symptoms:         dto.Symptoms,
+			Diagnosis:        dto.Diagnosis,
+			Treatment:        dto.Treatment,
+			Notes:            dto.Notes,
+		}
+
+		if err := tx.Create(&consultation).Error; err != nil {
+			return fmt.Errorf("error creating consultation: %v", err)
+		}
+
+		for _, prescDto := range dto.Prescriptions {
+			prescriptionID, _ := gonanoid.Nanoid()
+			prescription := MedicalPrescription{
+				ID:             prescriptionID,
+				ConsultationId: consultationID,
+				Medicine:       prescDto.Medicine,
+				Dosage:         prescDto.Dosage,
+				Frequency:      prescDto.Frequency,
+				Duration:       prescDto.Duration,
+				Instructions:   prescDto.Instructions,
+				IssuedAt:       time.Now(),
+			}
+
+			if err := tx.Create(&prescription).Error; err != nil {
+				return fmt.Errorf("error creating prescription: %v", err)
+			}
+		}
+
+		if err := tx.Model(&medicalHistory).Update("last_update", time.Now()).Error; err != nil {
+			return fmt.Errorf("error updating medical history: %v", err)
+		}
+
+		return nil
+	})
+}
+
+func (r *repository) GetOrCreateMedicalHistory(patientID string) (*MedicalHistory, error) {
+	return r.getOrCreateMedicalHistoryTx(r.db, patientID)
+}
+
+func (r *repository) getOrCreateMedicalHistoryTx(tx *gorm.DB, patientID string) (*MedicalHistory, error) {
+	var medicalHistory MedicalHistory
+
+	err := tx.Where("patient_id = ?", patientID).First(&medicalHistory).Error
+	if err == nil {
+		return &medicalHistory, nil
+	}
+
+	if err != gorm.ErrRecordNotFound {
+		return nil, fmt.Errorf("error searching medical history: %v", err)
+	}
+
+	nanoid, _ := gonanoid.Nanoid()
+	medicalHistory = MedicalHistory{
+		ID:         nanoid,
+		PatientId:  patientID,
+		LastUpdate: time.Now(),
+	}
+
+	if err := tx.Create(&medicalHistory).Error; err != nil {
+		return nil, fmt.Errorf("error creating medical history: %v", err)
+	}
+
+	return &medicalHistory, nil
+}
+
+func (r *repository) UpdateMedicalHistory(historyID string, dto UpdateMedicalHistoryDTO) error {
+	return r.db.Transaction(func(tx *gorm.DB) error {
+
+		var medicalHistory MedicalHistory
+		if err := tx.Where("id = ?", historyID).First(&medicalHistory).Error; err != nil {
+			return fmt.Errorf("medical history not found: %v", err)
+		}
+
+		updates := map[string]interface{}{
+			"last_update": time.Now(),
+		}
+
+		updates["consult_reason"] = dto.ConsultReason
+		updates["personal_info"] = dto.PersonalInfo
+		updates["family_info"] = dto.FamilyInfo
+		updates["allergies"] = dto.Allergies
+		updates["observations"] = dto.Observations
+
+		if err := tx.Model(&medicalHistory).Updates(updates).Error; err != nil {
+			return fmt.Errorf("error updating medical history: %v", err)
+		}
+
+		return nil
+	})
 }

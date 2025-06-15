@@ -209,3 +209,111 @@ func (h *Handler) GetClinicPersonnel(c *fiber.Ctx) error {
 
 	return c.JSON(personnelResponse)
 }
+
+func (h *Handler) GetMedicalHistoryByPatientID(c *fiber.Ctx) error {
+	patientID := c.Params("patientId")
+
+	if patientID == "" {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+			"error": "Patient ID is required",
+		})
+	}
+
+	medicalHistory, err := h.service.GetMedicalHistoryByPatientID(patientID)
+	if err != nil {
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+			"error": err.Error(),
+		})
+	}
+
+	return c.JSON(fiber.Map{
+		"success": true,
+		"data":    medicalHistory,
+	})
+}
+
+func (h *Handler) CreateMedicalHistory(c *fiber.Ctx) error {
+	var dto CreateMedicalHistoryDTO
+
+	if err := c.BodyParser(&dto); err != nil {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+			"error": "Invalid request body",
+		})
+	}
+
+	if dto.PatientId == "" {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+			"error": "Patient ID is required",
+		})
+	}
+
+	err := h.service.CreateMedicalHistory(dto)
+	if err != nil {
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+			"error": err.Error(),
+		})
+	}
+
+	return c.JSON(fiber.Map{
+		"success": true,
+		"message": "Medical history created successfully",
+	})
+}
+
+func (h *Handler) CreateConsultation(c *fiber.Ctx) error {
+	var dto CreateConsultationDTO
+
+	if err := c.BodyParser(&dto); err != nil {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+			"error": "Invalid request body",
+		})
+	}
+
+	if dto.PatientId == "" || dto.PhysicianId == "" {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+			"error": "Patient ID and Physician ID are required",
+		})
+	}
+
+	err := h.service.CreateConsultation(dto)
+	if err != nil {
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+			"error": err.Error(),
+		})
+	}
+
+	return c.JSON(fiber.Map{
+		"success": true,
+		"message": "Consultation created successfully",
+	})
+}
+
+func (h *Handler) UpdateMedicalHistory(c *fiber.Ctx) error {
+	historyID := c.Params("historyId")
+
+	if historyID == "" {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+			"error": "Medical history ID is required",
+		})
+	}
+
+	var dto UpdateMedicalHistoryDTO
+
+	if err := c.BodyParser(&dto); err != nil {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+			"error": "Invalid request body",
+		})
+	}
+
+	err := h.service.UpdateMedicalHistory(historyID, dto)
+	if err != nil {
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+			"error": err.Error(),
+		})
+	}
+
+	return c.JSON(fiber.Map{
+		"success": true,
+		"message": "Medical history updated successfully",
+	})
+}

@@ -11,6 +11,11 @@ type Service interface {
 	AssignServicesToClinic(dto AssignServicesClinicDTO) error
 	GetClinicsByEps(epsID string, page int, pageSize int) ([]Clinic, error)
 	GetClinicPersonnel(clinicID string) (ClinicPersonnelResponse, error)
+
+	GetMedicalHistoryByPatientID(patientID string) (*MedicalHistoryResponseDTO, error)
+	CreateMedicalHistory(dto CreateMedicalHistoryDTO) error
+	CreateConsultation(dto CreateConsultationDTO) error
+	UpdateMedicalHistory(historyID string, dto UpdateMedicalHistoryDTO) error
 }
 
 type service struct {
@@ -147,4 +152,32 @@ func (s *service) GetClinicPersonnel(clinicID string) (ClinicPersonnelResponse, 
 	}
 
 	return response, nil
+}
+
+func (s *service) GetMedicalHistoryByPatientID(patientID string) (*MedicalHistoryResponseDTO, error) {
+	return s.repo.GetMedicalHistoryByPatientID(patientID)
+}
+
+func (s *service) CreateMedicalHistory(dto CreateMedicalHistoryDTO) error {
+	err := s.repo.CreateMedicalHistory(dto)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+func (s *service) CreateConsultation(dto CreateConsultationDTO) error {
+	err := s.repo.CreateConsultation(dto)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+func (s *service) UpdateMedicalHistory(historyID string, dto UpdateMedicalHistoryDTO) error {
+	err := s.repo.UpdateMedicalHistory(historyID, dto)
+	if err != nil {
+		return err
+	}
+	return nil
 }

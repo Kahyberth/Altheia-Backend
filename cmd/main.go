@@ -114,6 +114,14 @@ func main() {
 	clinicGroup.Get("/personnel/:clinicId", clinicHandler.GetClinicPersonnel)
 	clinicGroup.Get("/patients/:clinicId", patientHandler.GetPatientByClinicId)
 
+	// Medical History routes
+	medicalHistoryGroup := app.Group("/medical-history")
+	//medicalHistoryGroup.Use(middleware.JWTProtected())
+	medicalHistoryGroup.Get("/patient/:patientId", clinicHandler.GetMedicalHistoryByPatientID)
+	medicalHistoryGroup.Post("/create", clinicHandler.CreateMedicalHistory)
+	medicalHistoryGroup.Post("/consultation/create", clinicHandler.CreateConsultation)
+	medicalHistoryGroup.Put("/update/:historyId", clinicHandler.UpdateMedicalHistory)
+
 	//Patient routes
 	patientGroup := app.Group("/patient")
 	patientGroup.Post("/register", patientHandler.RegisterPatient)
