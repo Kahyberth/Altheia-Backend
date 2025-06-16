@@ -41,6 +41,7 @@ func main() {
 		&clinical.MedicalConsultation{},
 		&appointments.MedicalAppointment{},
 		&clinical.MedicalPrescription{},
+		&clinical.MedicalDocument{},
 	)
 	if err != nil {
 		return
@@ -124,6 +125,13 @@ func main() {
 	medicalHistoryGroup.Post("/create", clinicHandler.CreateMedicalHistory)
 	medicalHistoryGroup.Post("/consultation/create", clinicHandler.CreateConsultation)
 	medicalHistoryGroup.Put("/update/:historyId", clinicHandler.UpdateMedicalHistory)
+	medicalHistoryGroup.Get("/clinic/:clinicId", clinicHandler.GetClinicMedicalHistoriesPaginated)
+
+	// Document management routes
+	medicalHistoryGroup.Post("/documents/add", clinicHandler.AddDocumentsToMedicalHistory)
+	medicalHistoryGroup.Post("/consultation/documents/add", clinicHandler.AddDocumentsToConsultation)
+	medicalHistoryGroup.Get("/documents/:medicalHistoryId", clinicHandler.GetDocumentsByMedicalHistory)
+	medicalHistoryGroup.Get("/consultation/documents/:consultationId", clinicHandler.GetDocumentsByConsultation)
 
 	//Patient routes
 	patientGroup := app.Group("/patient")
@@ -155,7 +163,7 @@ func main() {
 	appointmentGroup.Get("/getAllByMedicId/:id", appointmentHandler.GetAllAppointmentsByMedicId)
 	appointmentGroup.Get("/getAllByUserId/:id", appointmentHandler.GetAllAppointmentsByUserId)
 	appointmentGroup.Patch("/cancel/:id", appointmentHandler.CancelAppointment)
-	appointmentGroup.Get("/reschedule/:id", appointmentHandler.RescheduleAppointment)
+	appointmentGroup.Patch("/reschedule/:id", appointmentHandler.RescheduleAppointment)
 
 	// Auth routes
 	authGroup := app.Group("/auth")

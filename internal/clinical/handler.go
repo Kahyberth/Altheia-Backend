@@ -219,17 +219,14 @@ func (h *Handler) GetMedicalHistoryByPatientID(c *fiber.Ctx) error {
 		})
 	}
 
-	medicalHistory, err := h.service.GetMedicalHistoryByPatientID(patientID)
+	comprehensiveResponse, err := h.service.GetMedicalHistoryComprehensive(patientID)
 	if err != nil {
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
 			"error": err.Error(),
 		})
 	}
 
-	return c.JSON(fiber.Map{
-		"success": true,
-		"data":    medicalHistory,
-	})
+	return c.JSON(comprehensiveResponse)
 }
 
 func (h *Handler) CreateMedicalHistory(c *fiber.Ctx) error {
@@ -247,17 +244,20 @@ func (h *Handler) CreateMedicalHistory(c *fiber.Ctx) error {
 		})
 	}
 
-	err := h.service.CreateMedicalHistory(dto)
+	if len(dto.Prescriptions) > 0 && dto.PhysicianId == "" {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+			"error": "Physician ID is required when prescriptions are provided",
+		})
+	}
+
+	response, err := h.service.CreateMedicalHistoryComprehensive(dto)
 	if err != nil {
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
 			"error": err.Error(),
 		})
 	}
 
-	return c.JSON(fiber.Map{
-		"success": true,
-		"message": "Medical history created successfully",
-	})
+	return c.JSON(response)
 }
 
 func (h *Handler) CreateConsultation(c *fiber.Ctx) error {
@@ -315,5 +315,139 @@ func (h *Handler) UpdateMedicalHistory(c *fiber.Ctx) error {
 	return c.JSON(fiber.Map{
 		"success": true,
 		"message": "Medical history updated successfully",
+	})
+}
+
+func (h *Handler) GetClinicMedicalHistoriesPaginated(c *fiber.Ctx) error {
+	clinicID := c.Params("clinicId")
+	if clinicID == "" {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+			"error": "Clinic ID is required",
+		})
+	}
+
+	page := c.QueryInt("page", 1)
+	size := c.QueryInt("size", 10)
+
+	if page < 1 {
+		page = 1
+	}
+	if size < 1 || size > 100 {
+		size = 10
+	}
+
+	response, err := h.service.GetClinicMedicalHistoriesPaginated(clinicID, page, size)
+	if err != nil {
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+			"error": err.Error(),
+		})
+	}
+
+	return c.JSON(response)
+}
+
+func (h *Handler) AddDocumentsToMedicalHistory(c *fiber.Ctx) error {
+	var dto AddDocumentsToMedicalHistoryDTO
+
+	if err := c.BodyParser(&dto); err != nil {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+			"error": "Invalid request body",
+		})
+	}
+
+	if dto.MedicalHistoryId == "" {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+			"error": "Medical history ID is required",
+		})
+	}
+
+	if len(dto.Documents) == 0 {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+			"error": "At least one document is required",
+		})
+	}
+
+	response, err := h.service.AddDocumentsToMedicalHistory(dto)
+	if err != nil {
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+			"error": err.Error(),
+		})
+	}
+
+	return c.JSON(response)
+}
+
+func (h *Handler) AddDocumentsToConsultation(c *fiber.Ctx) error {
+	var dto AddDocumentsToConsultationDTO
+
+	if err := c.BodyParser(&dto); err != nil {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+			"error": "Invalid request body",
+		})
+	}
+
+	if dto.ConsultationId == "" {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+			"error": "Consultation ID is required",
+		})
+	}
+
+	if len(dto.Documents) == 0 {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+			"error": "At least one document is required",
+		})
+	}
+
+	response, err := h.service.AddDocumentsToConsultation(dto)
+	if err != nil {
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+			"error": err.Error(),
+		})
+	}
+
+	return c.JSON(response)
+}
+
+func (h *Handler) GetDocumentsByMedicalHistory(c *fiber.Ctx) error {
+	medicalHistoryId := c.Params("medicalHistoryId")
+	if medicalHistoryId == "" {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+			"error": "Medical history ID is required",
+		})
+	}
+
+	documents, err := h.service.GetDocumentsByMedicalHistory(medicalHistoryId)
+	if err != nil {
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+			"error": err.Error(),
+		})
+	}
+
+	return c.JSON(fiber.Map{
+		"success":   true,
+		"documents": documents,
+		"count":     len(documents),
+	})
+}
+
+func (h *Handler) GetDocumentsByConsultation(c *fiber.Ctx) error {
+	consultationId := c.Params("consultationId")
+	if consultationId == "" {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+			"error": "Consultation ID is required",
+		})
+	}
+
+	documents, err := h.service.GetDocumentsByConsultation(consultationId)
+	if err != nil {
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+			"error": err.Error(),
+		})
+	}
+
+	return c.JSON(fiber.Map{
+		"success":   true,
+		"documents": documents,
+		"count":     len(documents),
 	})
 }

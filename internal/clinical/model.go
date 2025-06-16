@@ -141,12 +141,15 @@ type ClinicPersonnelResponse struct {
 }
 
 type CreateMedicalHistoryDTO struct {
-	PatientId     string `json:"patient_id" validate:"required"`
-	ConsultReason string `json:"consult_reason"`
-	PersonalInfo  string `json:"personal_info"`
-	FamilyInfo    string `json:"family_info"`
-	Allergies     string `json:"allergies"`
-	Observations  string `json:"observations"`
+	PatientId     string                  `json:"patient_id" validate:"required"`
+	PhysicianId   string                  `json:"physician_id,omitempty"`
+	ConsultReason string                  `json:"consult_reason"`
+	PersonalInfo  string                  `json:"personal_info"`
+	FamilyInfo    string                  `json:"family_info"`
+	Allergies     string                  `json:"allergies"`
+	Observations  string                  `json:"observations"`
+	Prescriptions []CreatePrescriptionDTO `json:"prescriptions,omitempty"`
+	Documents     []CreateDocumentDTO     `json:"documents,omitempty"`
 }
 
 type UpdateMedicalHistoryDTO struct {
@@ -166,8 +169,8 @@ type CreateConsultationDTO struct {
 	Treatment        string                  `json:"treatment"`
 	Notes            string                  `json:"notes"`
 	Prescriptions    []CreatePrescriptionDTO `json:"prescriptions,omitempty"`
+	Documents        []CreateDocumentDTO     `json:"documents,omitempty"`
 
-	// Optional fields to update medical history when creating consultation
 	UpdateMedicalHistory bool   `json:"update_medical_history,omitempty"`
 	ConsultReason        string `json:"consult_reason,omitempty"`
 	PersonalInfo         string `json:"personal_info,omitempty"`
@@ -182,6 +185,15 @@ type CreatePrescriptionDTO struct {
 	Frequency    string `json:"frequency" validate:"required"`
 	Duration     string `json:"duration" validate:"required"`
 	Instructions string `json:"instructions"`
+}
+
+type CreateDocumentDTO struct {
+	Name        string `json:"name" validate:"required"`
+	Type        string `json:"type" validate:"required"`
+	Size        string `json:"size"`
+	Base64Data  string `json:"base64_data,omitempty"`
+	URL         string `json:"url,omitempty"`
+	Description string `json:"description,omitempty"`
 }
 
 type MedicalHistoryResponseDTO struct {
@@ -249,4 +261,160 @@ type EnhancedConsultationResponseDTO struct {
 	PhysicianInfo    PhysicianInfoDTO          `json:"physician_info"`
 	Metadata         ConsultationMetadata      `json:"metadata"`
 	Prescriptions    []PrescriptionResponseDTO `json:"prescriptions"`
+}
+
+type PatientBasicInfo struct {
+	ID     string `json:"id"`
+	Name   string `json:"name"`
+	Age    int    `json:"age"`
+	Gender string `json:"gender"`
+	DOB    string `json:"dob"`
+	MRN    string `json:"mrn"`
+	Avatar string `json:"avatar"`
+}
+
+type RecordCategory struct {
+	ID   string `json:"id"`
+	Name string `json:"name"`
+	Icon string `json:"icon"`
+}
+
+type Document struct {
+	ID         string `json:"id"`
+	Name       string `json:"name"`
+	Type       string `json:"type"`
+	Size       string `json:"size"`
+	UploadedBy string `json:"uploadedBy"`
+	UploadedAt string `json:"uploadedAt"`
+	URL        string `json:"url"`
+}
+
+type MedicalRecordContent map[string]interface{}
+
+type MedicalRecord struct {
+	ID        string               `json:"id"`
+	PatientID string               `json:"patientId"`
+	Type      string               `json:"type"`
+	Title     string               `json:"title"`
+	Date      string               `json:"date"`
+	Provider  string               `json:"provider"`
+	Status    string               `json:"status"`
+	Content   MedicalRecordContent `json:"content"`
+	Documents []Document           `json:"documents"`
+}
+
+type AuditEntry struct {
+	ID        string `json:"id"`
+	RecordID  string `json:"recordId"`
+	Action    string `json:"action"`
+	User      string `json:"user"`
+	Timestamp string `json:"timestamp"`
+	Details   string `json:"details"`
+}
+
+type Metadata struct {
+	TotalRecords  int    `json:"totalRecords"`
+	TotalPatients int    `json:"totalPatients"`
+	LastUpdated   string `json:"lastUpdated"`
+	Version       string `json:"version"`
+}
+
+type ComprehensiveMedicalRecordsResponse struct {
+	Success bool               `json:"success"`
+	Data    MedicalRecordsData `json:"data"`
+}
+
+type MedicalRecordsData struct {
+	Patients         []PatientBasicInfo `json:"patients,omitempty"`
+	RecordCategories []RecordCategory   `json:"recordCategories,omitempty"`
+	MedicalRecords   []MedicalRecord    `json:"medicalRecords"`
+	AuditTrail       []AuditEntry       `json:"auditTrail,omitempty"`
+	Metadata         Metadata           `json:"metadata"`
+}
+
+type PaginatedMedicalHistoriesResponse struct {
+	Success    bool                         `json:"success"`
+	Data       []ComprehensiveMedicalRecord `json:"data"`
+	Pagination PaginationInfo               `json:"pagination"`
+	Summary    ClinicMedicalSummary         `json:"summary"`
+}
+
+type ComprehensiveMedicalRecord struct {
+	Patient        PatientBasicInfo `json:"patient"`
+	MedicalRecords []MedicalRecord  `json:"medicalRecords"`
+	LastUpdate     string           `json:"lastUpdate"`
+	RecordCount    int              `json:"recordCount"`
+}
+
+type PaginationInfo struct {
+	CurrentPage  int   `json:"currentPage"`
+	PageSize     int   `json:"pageSize"`
+	TotalPages   int   `json:"totalPages"`
+	TotalRecords int64 `json:"totalRecords"`
+	HasNext      bool  `json:"hasNext"`
+	HasPrevious  bool  `json:"hasPrevious"`
+}
+
+type ClinicMedicalSummary struct {
+	TotalPatients       int    `json:"totalPatients"`
+	TotalMedicalRecords int    `json:"totalMedicalRecords"`
+	RecentActivity      string `json:"recentActivity"`
+	MostActivePatient   string `json:"mostActivePatient,omitempty"`
+	LastUpdated         string `json:"lastUpdated"`
+}
+
+type MedicalDocument struct {
+	ID               string    `gorm:"primaryKey" json:"id"`
+	MedicalHistoryId *string   `json:"medical_history_id,omitempty"`
+	ConsultationId   *string   `json:"consultation_id,omitempty"`
+	Name             string    `json:"name"`
+	OriginalName     string    `json:"original_name"`
+	Type             string    `json:"type"`
+	Size             int64     `json:"size"`
+	MimeType         string    `json:"mime_type"`
+	FilePath         string    `json:"file_path"`
+	URL              string    `json:"url"`
+	Description      string    `json:"description"`
+	UploadedBy       string    `json:"uploaded_by"`
+	UploadedAt       time.Time `json:"uploaded_at"`
+	IsPublic         bool      `json:"is_public"`
+
+	MedicalHistory *MedicalHistory      `gorm:"foreignKey:MedicalHistoryId"`
+	Consultation   *MedicalConsultation `gorm:"foreignKey:ConsultationId"`
+
+	CreatedAt time.Time      `json:"createdAt"`
+	UpdatedAt time.Time      `json:"updatedAt"`
+	DeletedAt gorm.DeletedAt `gorm:"index" json:"-"`
+}
+
+type AddDocumentsToMedicalHistoryDTO struct {
+	MedicalHistoryId string              `json:"medical_history_id" validate:"required"`
+	Documents        []CreateDocumentDTO `json:"documents" validate:"required,min=1"`
+	UploadedBy       string              `json:"uploaded_by"`
+}
+
+type AddDocumentsToConsultationDTO struct {
+	ConsultationId string              `json:"consultation_id" validate:"required"`
+	Documents      []CreateDocumentDTO `json:"documents" validate:"required,min=1"`
+	UploadedBy     string              `json:"uploaded_by"`
+}
+
+type DocumentResponseDTO struct {
+	ID           string `json:"id"`
+	Name         string `json:"name"`
+	OriginalName string `json:"original_name"`
+	Type         string `json:"type"`
+	Size         int64  `json:"size"`
+	MimeType     string `json:"mime_type"`
+	URL          string `json:"url"`
+	Description  string `json:"description"`
+	UploadedBy   string `json:"uploaded_by"`
+	UploadedAt   string `json:"uploaded_at"`
+	IsPublic     bool   `json:"is_public"`
+}
+
+type AddDocumentsResponseDTO struct {
+	Success   bool                  `json:"success"`
+	Message   string                `json:"message"`
+	Documents []DocumentResponseDTO `json:"documents"`
 }

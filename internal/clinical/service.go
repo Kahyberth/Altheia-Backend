@@ -13,9 +13,18 @@ type Service interface {
 	GetClinicPersonnel(clinicID string) (ClinicPersonnelResponse, error)
 
 	GetMedicalHistoryByPatientID(patientID string) (*MedicalHistoryResponseDTO, error)
+	GetMedicalHistoryComprehensive(patientID string) (*ComprehensiveMedicalRecordsResponse, error)
 	CreateMedicalHistory(dto CreateMedicalHistoryDTO) error
+	CreateMedicalHistoryComprehensive(dto CreateMedicalHistoryDTO) (*ComprehensiveMedicalRecordsResponse, error)
 	CreateConsultation(dto CreateConsultationDTO) error
 	UpdateMedicalHistory(historyID string, dto UpdateMedicalHistoryDTO) error
+	GetClinicMedicalHistoriesPaginated(clinicID string, page int, pageSize int) (*PaginatedMedicalHistoriesResponse, error)
+
+	// Document methods
+	AddDocumentsToMedicalHistory(dto AddDocumentsToMedicalHistoryDTO) (*AddDocumentsResponseDTO, error)
+	AddDocumentsToConsultation(dto AddDocumentsToConsultationDTO) (*AddDocumentsResponseDTO, error)
+	GetDocumentsByMedicalHistory(medicalHistoryId string) ([]DocumentResponseDTO, error)
+	GetDocumentsByConsultation(consultationId string) ([]DocumentResponseDTO, error)
 }
 
 type service struct {
@@ -98,7 +107,6 @@ func (s *service) GetClinicPersonnel(clinicID string) (ClinicPersonnelResponse, 
 	for _, user := range users {
 		roleDetails := make(map[string]interface{})
 
-		// Extract role-specific details based on user role
 		switch user.Rol {
 		case "patient":
 			roleDetails = map[string]interface{}{
@@ -158,12 +166,24 @@ func (s *service) GetMedicalHistoryByPatientID(patientID string) (*MedicalHistor
 	return s.repo.GetMedicalHistoryByPatientID(patientID)
 }
 
+func (s *service) GetMedicalHistoryComprehensive(patientID string) (*ComprehensiveMedicalRecordsResponse, error) {
+	return s.repo.GetMedicalHistoryComprehensive(patientID)
+}
+
 func (s *service) CreateMedicalHistory(dto CreateMedicalHistoryDTO) error {
 	err := s.repo.CreateMedicalHistory(dto)
 	if err != nil {
 		return err
 	}
 	return nil
+}
+
+func (s *service) CreateMedicalHistoryComprehensive(dto CreateMedicalHistoryDTO) (*ComprehensiveMedicalRecordsResponse, error) {
+	response, err := s.repo.CreateMedicalHistoryComprehensive(dto)
+	if err != nil {
+		return nil, err
+	}
+	return response, nil
 }
 
 func (s *service) CreateConsultation(dto CreateConsultationDTO) error {
@@ -180,4 +200,24 @@ func (s *service) UpdateMedicalHistory(historyID string, dto UpdateMedicalHistor
 		return err
 	}
 	return nil
+}
+
+func (s *service) GetClinicMedicalHistoriesPaginated(clinicID string, page int, pageSize int) (*PaginatedMedicalHistoriesResponse, error) {
+	return s.repo.GetClinicMedicalHistoriesPaginated(clinicID, page, pageSize)
+}
+
+func (s *service) AddDocumentsToMedicalHistory(dto AddDocumentsToMedicalHistoryDTO) (*AddDocumentsResponseDTO, error) {
+	return s.repo.AddDocumentsToMedicalHistory(dto)
+}
+
+func (s *service) AddDocumentsToConsultation(dto AddDocumentsToConsultationDTO) (*AddDocumentsResponseDTO, error) {
+	return s.repo.AddDocumentsToConsultation(dto)
+}
+
+func (s *service) GetDocumentsByMedicalHistory(medicalHistoryId string) ([]DocumentResponseDTO, error) {
+	return s.repo.GetDocumentsByMedicalHistory(medicalHistoryId)
+}
+
+func (s *service) GetDocumentsByConsultation(consultationId string) ([]DocumentResponseDTO, error) {
+	return s.repo.GetDocumentsByConsultation(consultationId)
 }
