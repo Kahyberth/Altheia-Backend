@@ -83,8 +83,11 @@ func main() {
 	appointmentHandler := appointments.NewHandler(appointmentService)
 
 	app := fiber.New()
+
+	// Configuración CORS
 	app.Use(cors.New(cors.Config{
 		AllowOrigins:     client,
+		AllowMethods:     "GET,POST,PUT,DELETE,PATCH,OPTIONS",
 		AllowHeaders:     "Origin, Content-Type, Accept, Authorization",
 		AllowCredentials: true,
 	}))
@@ -150,6 +153,9 @@ func main() {
 	appointmentGroup.Get("/getAll", appointmentHandler.GetAllAppointments)
 	appointmentGroup.Patch("/updateStatus/:id", appointmentHandler.UpdateAppointmentStatus)
 	appointmentGroup.Get("/getAllByMedicId/:id", appointmentHandler.GetAllAppointmentsByMedicId)
+	appointmentGroup.Get("/getAllByUserId/:id", appointmentHandler.GetAllAppointmentsByUserId)
+	appointmentGroup.Patch("/cancel/:id", appointmentHandler.CancelAppointment)
+	appointmentGroup.Get("/reschedule/:id", appointmentHandler.RescheduleAppointment)
 
 	// Auth routes
 	authGroup := app.Group("/auth")

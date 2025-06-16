@@ -1,13 +1,16 @@
 package appointments
 
+import "time"
+
 type AppointmentStatus string
 
 const (
-	AppointmentStatusPending   AppointmentStatus = "pending"
-	AppointmentStatusConfirmed AppointmentStatus = "confirmed"
-	AppointmentStatusCancelled AppointmentStatus = "cancelled"
-	AppointmentStatusCompleted AppointmentStatus = "completed"
-	AppointmentStatusNoShow    AppointmentStatus = "no_show"
+	AppointmentStatusPending     AppointmentStatus = "pending"
+	AppointmentStatusConfirmed   AppointmentStatus = "confirmed"
+	AppointmentStatusCancelled   AppointmentStatus = "cancelled"
+	AppointmentStatusCompleted   AppointmentStatus = "completed"
+	AppointmentStatusNoShow      AppointmentStatus = "no_show"
+	AppointmentStatusRescheduled AppointmentStatus = "rescheduled"
 )
 
 type CreateAppointmentDTO struct {
@@ -30,4 +33,12 @@ type AppointmentWithNamesDTO struct {
 	PhysicianGender string `json:"physician_gender"`
 	PhysicianEmail  string `json:"physician_email"`
 	PhysicianPhone  string `json:"physician_phone"`
+	ClinicName      string `json:"clinic_name"`
+	ClinicCity      string `json:"clinic_city"`
+	ClinicAddress   string `json:"clinic_address"`
+	ClinicId        string `json:"clinic_id"`
+}
+
+type NewDateTimeDTO struct {
+	NewDateTime time.Time `json:"new_date_time"`
 }
