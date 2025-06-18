@@ -20,7 +20,7 @@ func (h *Hub) Run() {
 		select {
 		case client := <-h.Register:
 			h.Clients[client] = true
-			log.Printf("Cliente WebSocket registrado: %s para clínica: %s", client.ID, client.ClinicID)
+			log.Printf("WebSocket client registered: %s for clinic: %s", client.ID, client.ClinicID)
 
 			welcomeMsg := Message{
 				Type:      "connection",
@@ -41,7 +41,7 @@ func (h *Hub) Run() {
 			if _, ok := h.Clients[client]; ok {
 				delete(h.Clients, client)
 				close(client.Send)
-				log.Printf("Cliente WebSocket desregistrado: %s", client.ID)
+				log.Printf("WebSocket client unregistered: %s", client.ID)
 			}
 
 		case message := <-h.Broadcast:

@@ -28,7 +28,7 @@ func SetSMTPClient(client SMTPClient) {
 
 func SendWelcomeMessage(username string, to []string) error {
 	if username == "" || len(to) == 0 || to[0] == "" {
-		return fmt.Errorf("parámetros inválidos para enviar el correo")
+		return fmt.Errorf("invalid parameters for sending email")
 	}
 
 	go func() {

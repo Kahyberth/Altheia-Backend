@@ -74,7 +74,7 @@ func (h *Handler) RefreshTokenH(c *fiber.Ctx) error {
 		return c.Status(400).JSON(fiber.Map{"error": "cannot parse JSON"})
 	}
 
-	return c.JSON(fiber.Map{"refresh_token": refreshToken, "access_token": accessToken, "message": "refresh token successfully"})
+	return c.JSON(fiber.Map{"refresh_token": refreshToken, "access_token": accessToken, "message": "token refreshed successfully"})
 }
 
 func (h *Handler) Logout(c *fiber.Ctx) error {
@@ -105,7 +105,7 @@ func (h *Handler) VerifyToken(c *fiber.Ctx) error {
 	data, token, err := h.service.verifyToken(token)
 	if err != nil {
 		return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{
-			"error": "Token inválido o expirado",
+			"error": "Invalid or expired token",
 		})
 	}
 

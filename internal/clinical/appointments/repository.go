@@ -4,9 +4,10 @@ import (
 	"Altheia-Backend/internal/clinical"
 	"Altheia-Backend/internal/users"
 	"fmt"
+	"time"
+
 	gonanoid "github.com/matoous/go-nanoid"
 	"gorm.io/gorm"
-	"time"
 )
 
 type Repository interface {
@@ -90,7 +91,7 @@ func (r *repository) CreateAppointment(appointment CreateAppointmentDTO) error {
 	// Parsear la fecha especificando la zona horaria de Bogotá
 	dateTime, err := time.ParseInLocation("2006-01-02 15:04", dateTimeStr, loc)
 	if err != nil {
-		return fmt.Errorf("formato de fecha u hora inválido: %w", err)
+		return fmt.Errorf("invalid date or time format: %w", err)
 	}
 
 	// Primero verificamos que existan el paciente y el médico

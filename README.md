@@ -1,149 +1,143 @@
 # 🏥 Altheia Backend
 
-**Altheia** es un sistema backend completo para una aplicación de Historia Clínica Electrónica (EHR) desarrollado en Go. Este sistema proporciona una API REST segura, escalable y moderna diseñada para facilitar la gestión integral de servicios de salud.
+**Altheia** is a complete backend system for an Electronic Health Record (EHR) application developed in Go. This system provides a secure, scalable, and modern REST API designed to facilitate comprehensive healthcare services management.
 
 [![Go Version](https://img.shields.io/badge/Go-1.24-blue)](https://golang.org/)
 [![Fiber Framework](https://img.shields.io/badge/Fiber-v2.52.6-00ADD8)](https://github.com/gofiber/fiber)
 [![PostgreSQL](https://img.shields.io/badge/PostgreSQL-16-336791)](https://www.postgresql.org/)
 [![License](https://img.shields.io/badge/License-MIT-green)](LICENSE)
 
-## 📋 Descripción
+## 📋 Description
 
-Altheia Backend es una solución integral que permite la gestión completa de servicios médicos, incluyendo:
-- Gestión de pacientes, médicos, recepcionistas y propietarios de clínicas
-- Historiales médicos digitales y consultas
-- Sistema de citas médicas
-- Administración de clínicas y servicios
-- Autenticación y autorización robusta con JWT
+Altheia Backend is a comprehensive solution that enables complete medical services management, including:
+- Management of patients, physicians, receptionists, and clinic owners
+- Digital medical records and consultations
+- Medical appointment system
+- Clinic and services administration
+- Robust authentication and authorization with JWT
 
-## ✨ Características Principales
+## ✨ Key Features
 
-### 🔐 Autenticación y Seguridad
-- Autenticación JWT con tokens de acceso y refresh
-- Middleware de protección de rutas
-- Gestión de actividades de login
-- Encriptación de contraseñas
-- Control de acceso basado en roles
+### 🔐 Authentication and Security
+- JWT authentication with access and refresh tokens
+- Route protection middleware
+- Login activity management
+- Password encryption
+- Role-based access control
 
-### 👥 Gestión de Usuarios
-- **Pacientes**: Registro, actualización, eliminación lógica
-- **Médicos**: Gestión completa con paginación
-- **Recepcionistas**: Administración del personal de recepción
-- **Propietarios de clínicas**: Gestión de dueños de centros médicos
-- **Técnicos de laboratorio**: Soporte para personal técnico
+### 👥 User Management
+- **Patients**: Registration, updates, soft deletion
+- **Physicians**: Complete management with pagination
+- **Receptionists**: Reception staff administration
+- **Clinic Owners**: Medical center owner management
+- **Laboratory Technicians**: Technical staff support
 
-### 🏥 Gestión Clínica
-- Registro y administración de clínicas
-- Información detallada de cada centro médico
-- Horarios y servicios ofrecidos
-- Asignación de personal a clínicas
-- Integración con EPS (Entidades Promotoras de Salud)
+### 🏥 Clinical Management
+- Clinic registration and administration
+- Detailed information for each medical center
+- Schedules and offered services
+- Staff assignment to clinics
+- Integration with EPS (Health Promotion Entities)
 
-### 📋 Historiales Médicos
-- Creación y actualización de historiales
-- Consultas médicas detalladas
-- Prescripciones médicas
-- Seguimiento de tratamientos
+### 📋 Medical Records
+- Creation and updating of medical records
+- Detailed medical consultations
+- Medical prescriptions
+- Treatment tracking
 
-### 📅 Sistema de Citas
-- Programación de citas médicas
-- Gestión de estados de citas
-- Filtrado por médico y fecha
-- Notificaciones y recordatorios
+### 📅 Appointment System
+- Medical appointment scheduling
+- Appointment status management
+- Filtering by physician and date
+- Notifications and reminders
 
-## 🛠️ Tecnologías
+## 🛠️ Technologies
 
-- **[Go](https://golang.org/)** 1.24 - Lenguaje de programación
-- **[Fiber](https://github.com/gofiber/fiber)** v2 - Framework web ultrarrápido
-- **[GORM](https://gorm.io/)** - ORM para Go
-- **[PostgreSQL](https://www.postgresql.org/)** 16 - Base de datos relacional
-- **[JWT](https://github.com/golang-jwt/jwt)** - Autenticación con tokens
-- **[Docker](https://www.docker.com/)** - Containerización
-- **[bcrypt](https://golang.org/x/crypto)** - Encriptación de contraseñas
+- **[Go](https://golang.org/)** 1.24 - Programming language
+- **[Fiber](https://github.com/gofiber/fiber)** v2 - Ultra-fast web framework
+- **[GORM](https://gorm.io/)** - ORM for Go
+- **[PostgreSQL](https://www.postgresql.org/)** 16 - Relational database
+- **[JWT](https://github.com/golang-jwt/jwt)** - Token-based authentication
+- **[Docker](https://www.docker.com/)** - Containerization
+- **[bcrypt](https://golang.org/x/crypto)** - Password encryption
 
+## 🚀 Installation and Setup
 
+### Prerequisites
 
-## 🚀 Instalación y Configuración
-
-### Prerrequisitos
-
-- Go 1.24 o superior
+- Go 1.24 or higher
 - PostgreSQL 16
-- Docker y Docker Compose (opcional)
+- Docker and Docker Compose (optional)
 
-### 1. Clonar el Repositorio
+### 1. Clone the Repository
 
 ```bash
 git clone https://github.com/Kahyberth/Altheia-Backend.git
 cd Altheia-Backend
 ```
 
-
-```
-### 2. Instalación con Docker (Recomendado)
+### 2. Docker Installation (Recommended)
 
 ```bash
-# Iniciar base de datos PostgreSQL
+# Start PostgreSQL database
 docker-compose up -d
 
-# Instalar dependencias
+# Install dependencies
 make deps
 
-# Ejecutar la aplicación
+# Run the application
 make build
 ./bin/altheia
 ```
 
-### 4. Instalación Manual
+### 4. Manual Installation
 
 ```bash
-# Instalar dependencias
+# Install dependencies
 go mod download
 
-# Construir la aplicación
+# Build the application
 go build -o bin/altheia ./cmd/main.go
-
-
 ```
 
 ## 📖 API Endpoints
 
-### Autenticación
-- `POST /auth/login` - Iniciar sesión
-- `POST /auth/logout` - Cerrar sesión
-- `GET /auth/verify-token` - Verificar token
-- `POST /auth/refresh-token/:refresh_token` - Renovar token
+### Authentication
+- `POST /auth/login` - Login
+- `POST /auth/logout` - Logout
+- `GET /auth/verify-token` - Verify token
+- `POST /auth/refresh-token/:refresh_token` - Refresh token
 
-### Pacientes
-- `POST /patient/register` - Registrar paciente
-- `GET /patient/getAll` - Obtener todos los pacientes
-- `GET /patient/getAllPaginated` - Obtener pacientes paginados
-- `PATCH /patient/update/:id` - Actualizar paciente
+### Patients
+- `POST /patient/register` - Register patient
+- `GET /patient/getAll` - Get all patients
+- `GET /patient/getAllPaginated` - Get paginated patients
+- `PATCH /patient/update/:id` - Update patient
 
-### Médicos
-- `POST /physician/register` - Registrar médico
-- `GET /physician/getAll` - Obtener todos los médicos
-- `GET /physician/:id` - Obtener médico por ID
+### Physicians
+- `POST /physician/register` - Register physician
+- `GET /physician/getAll` - Get all physicians
+- `GET /physician/:id` - Get physician by ID
 
-### Clínicas
-- `POST /clinic/register` - Registrar clínica
-- `GET /clinic/:clinicId` - Obtener clínica por ID
-- `GET /clinic/by-owner/:ownerId` - Obtener clínicas por propietario
+### Clinics
+- `POST /clinic/register` - Register clinic
+- `GET /clinic/:clinicId` - Get clinic by ID
+- `GET /clinic/by-owner/:ownerId` - Get clinics by owner
 
-### Citas Médicas
-- `POST /appointments/create` - Crear cita
-- `GET /appointments/getAll` - Obtener todas las citas
-- `PATCH /appointments/updateStatus/:id` - Actualizar estado de cita
+### Medical Appointments
+- `POST /appointments/create` - Create appointment
+- `GET /appointments/getAll` - Get all appointments
+- `PATCH /appointments/updateStatus/:id` - Update appointment status
 
-### Historiales Médicos
-- `POST /medical-history/create` - Crear historial médico
-- `GET /medical-history/patient/:patientId` - Obtener historial por paciente
+### Medical Records
+- `POST /medical-history/create` - Create medical record
+- `GET /medical-history/patient/:patientId` - Get record by patient
 
-## 🛡️ Seguridad
+## 🛡️ Security
 
-- **Encriptación de contraseñas** con bcrypt
-- **Tokens JWT** para autenticación stateless
-- **Middleware de autenticación** en rutas protegidas
-- **Validación de datos** de entrada
-- **CORS** configurado adecuadamente
-- **Variables de entorno** para datos sensibles
+- **Password encryption** with bcrypt
+- **JWT tokens** for stateless authentication
+- **Authentication middleware** on protected routes
+- **Input data validation**
+- **CORS** properly configured
+- **Environment variables** for sensitive data

@@ -39,7 +39,7 @@ func (h *Handler) HandleWebSocket(c *websocket.Conn) {
 
 	clinicID := c.Query("clinic_id")
 	if clinicID == "" {
-		log.Println("clinic_id es requerido para la conexión WebSocket")
+		log.Println("clinic_id is required for WebSocket connection")
 		c.Close()
 		return
 	}
@@ -53,7 +53,7 @@ func (h *Handler) HandleWebSocket(c *websocket.Conn) {
 		Send:     make(chan []byte, 256),
 	}
 
-	log.Printf("Nueva conexión WebSocket establecida: %s para clínica: %s", clientID, clinicID)
+	log.Printf("New WebSocket connection established: %s for clinic: %s", clientID, clinicID)
 
 	h.hub.Register <- client
 
@@ -65,7 +65,7 @@ func (h *Handler) handleWrite(client *Client) {
 	ticker := time.NewTicker(54 * time.Second)
 	defer func() {
 		ticker.Stop()
-		log.Printf("handleWrite terminado para cliente %s", client.ID)
+		log.Printf("handleWrite finished for client %s", client.ID)
 	}()
 
 	for {
@@ -74,13 +74,13 @@ func (h *Handler) handleWrite(client *Client) {
 			client.Conn.SetWriteDeadline(time.Now().Add(10 * time.Second))
 
 			if !ok {
-				log.Printf("Canal cerrado para cliente %s", client.ID)
+				log.Printf("Channel closed for client %s", client.ID)
 				client.Conn.WriteMessage(websocket.CloseMessage, []byte{})
 				return
 			}
 
 			if err := client.Conn.WriteMessage(websocket.TextMessage, message); err != nil {
-				log.Printf("Error escribiendo mensaje al cliente %s: %v", client.ID, err)
+				log.Printf("Error writing message to client %s: %v", client.ID, err)
 				return
 			}
 
@@ -88,7 +88,7 @@ func (h *Handler) handleWrite(client *Client) {
 			client.Conn.SetWriteDeadline(time.Now().Add(10 * time.Second))
 
 			if err := client.Conn.WriteMessage(websocket.PingMessage, nil); err != nil {
-				log.Printf("Error enviando ping al cliente %s: %v", client.ID, err)
+				log.Printf("Error sending ping to client %s: %v", client.ID, err)
 				return
 			}
 		}
@@ -97,7 +97,7 @@ func (h *Handler) handleWrite(client *Client) {
 
 func (h *Handler) handleRead(client *Client) {
 	defer func() {
-		log.Printf("handleRead terminado para cliente %s", client.ID)
+		log.Printf("handleRead finished for client %s", client.ID)
 		h.hub.Unregister <- client
 		client.Conn.Close()
 	}()
@@ -112,9 +112,9 @@ func (h *Handler) handleRead(client *Client) {
 		messageType, message, err := client.Conn.ReadMessage()
 		if err != nil {
 			if websocket.IsUnexpectedCloseError(err, websocket.CloseGoingAway, websocket.CloseAbnormalClosure) {
-				log.Printf("Error inesperado de WebSocket para cliente %s: %v", client.ID, err)
+				log.Printf("Unexpected WebSocket error for client %s: %v", client.ID, err)
 			} else {
-				log.Printf("Cliente %s se desconectó normalmente", client.ID)
+				log.Printf("Client %s disconnected normally", client.ID)
 			}
 			break
 		}
@@ -122,7 +122,7 @@ func (h *Handler) handleRead(client *Client) {
 		client.Conn.SetReadDeadline(time.Now().Add(60 * time.Second))
 
 		if messageType == websocket.TextMessage {
-			log.Printf("Mensaje recibido del cliente %s: %s", client.ID, string(message))
+			log.Printf("Message received from client %s: %s", client.ID, string(message))
 		}
 	}
 }
@@ -137,7 +137,7 @@ func (h *Handler) GetStats(c *fiber.Ctx) error {
 func (h *Handler) GetClinicStats(c *fiber.Ctx) error {
 	clinicID := c.Params("clinicId")
 	if clinicID == "" {
-		return c.Status(400).JSON(fiber.Map{"error": "clinic_id es requerido"})
+		return c.Status(400).JSON(fiber.Map{"error": "clinic_id is required"})
 	}
 
 	return c.JSON(fiber.Map{
@@ -174,7 +174,7 @@ func (h *Handler) BroadcastMessage(c *fiber.Ctx) error {
 		}
 	}
 
-	return c.JSON(fiber.Map{"message": "Mensaje enviado exitosamente"})
+	return c.JSON(fiber.Map{"message": "Message sent successfully"})
 }
 
 type FiberWebSocketConnection struct {
