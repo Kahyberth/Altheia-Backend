@@ -77,7 +77,6 @@ func TestReceptionist_TimeFields(t *testing.T) {
 	}
 }
 
-// Benchmark tests
 func BenchmarkReceptionist_Creation(b *testing.B) {
 	b.ResetTimer()
 	for i := 0; i < b.N; i++ {

@@ -29,12 +29,11 @@ func NewService(r Repository) Service {
 }
 
 func (s *service) RegisterPhysician(physician CreatePhysicianInfo) error {
-	// Validate clinic ID is provided
+
 	if physician.ClinicID == "" {
 		return fmt.Errorf("clinic_id is required")
 	}
 
-	// Check clinic exists
 	exists, err := s.repo.ClinicExists(physician.ClinicID)
 	if err != nil {
 		return err

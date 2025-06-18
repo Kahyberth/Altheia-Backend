@@ -5,7 +5,6 @@ import (
 	"time"
 )
 
-// Patient represents a patient in the system
 type Patient struct {
 	ID          string    `json:"id"`
 	UserID      string    `json:"user_id"`
@@ -18,7 +17,6 @@ type Patient struct {
 	UpdatedAt   time.Time `json:"updated_at"`
 }
 
-// validatePatient validates a patient's data
 func validatePatient(p *Patient) error {
 	if p.UserID == "" {
 		return errors.New("user ID is required")
@@ -28,7 +26,6 @@ func validatePatient(p *Patient) error {
 		return errors.New("date of birth is required")
 	}
 
-	// Validate date format (YYYY-MM-DD)
 	_, err := time.Parse("2006-01-02", p.DateOfBirth)
 	if err != nil {
 		return errors.New("invalid date of birth format, expected YYYY-MM-DD")
@@ -38,7 +35,6 @@ func validatePatient(p *Patient) error {
 		return errors.New("blood type is required")
 	}
 
-	// Validate blood type
 	validBloodTypes := map[string]bool{
 		"A+": true, "A-": true,
 		"B+": true, "B-": true,

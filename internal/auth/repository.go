@@ -34,20 +34,20 @@ func NewRepository(db *gorm.DB) Repository {
 
 func (r *repository) FindByEmail(email string) (*users.User, error) {
 	var user users.User
-	err := r.db.Preload("Patient").Preload("Physician").Preload("Receptionist").Preload("ClinicOwner").Where("email = ?", email).First(&user).Error
+	err := r.db.Preload("Patient").Preload("Physician").Preload("Receptionist").Preload("ClinicOwner").Preload("SuperAdmin").Where("email = ?", email).First(&user).Error
 	return &user, err
 }
 
 func (r *repository) FindByID(id string) (*users.User, error) {
 	var user users.User
 	fmt.Print("ID del usuario desde repository: ", id)
-	err := r.db.Preload("Patient").Preload("Physician").Preload("Receptionist").Preload("ClinicOwner").Where("id = ?", id).First(&user).Error
+	err := r.db.Preload("Patient").Preload("Physician").Preload("Receptionist").Preload("ClinicOwner").Preload("SuperAdmin").Where("id = ?", id).First(&user).Error
 	return &user, err
 }
 
 func (r *repository) GetUserWithAllDetails(id string) (*users.User, error) {
 	var user users.User
-	err := r.db.Preload("Patient").Preload("Physician").Preload("Receptionist").Preload("ClinicOwner").Where("id = ?", id).First(&user).Error
+	err := r.db.Preload("Patient").Preload("Physician").Preload("Receptionist").Preload("ClinicOwner").Preload("SuperAdmin").Where("id = ?", id).First(&user).Error
 	return &user, err
 }
 
@@ -130,23 +130,8 @@ func (r *repository) DeleteUserCompletely(userID string) error {
 		case "physician":
 			var physician users.Physician
 			if err := tx.Where("user_id = ?", userID).First(&physician).Error; err == nil {
-				fmt.Printf("Found physician with ID: %s\n", physician.ID)
 
-				result := tx.Exec(`
-					DELETE FROM medical_prescriptions 
-					WHERE consultation_id IN (
-						SELECT id FROM medical_consultations WHERE physician_id = ?
-					)
-				`, physician.ID)
-				fmt.Printf("Deleted %d physician prescriptions\n", result.RowsAffected)
-
-				result = tx.Where("physician_id = ?", physician.ID).Delete(&clinical.MedicalConsultation{})
-				if result.Error != nil {
-					return fmt.Errorf("failed to delete physician consultations: %v", result.Error)
-				}
-				fmt.Printf("Deleted %d physician consultations\n", result.RowsAffected)
-
-				result = tx.Where("physician_id = ?", physician.ID).Delete(&appointments.MedicalAppointment{})
+				result := tx.Where("physician_id = ?", physician.ID).Delete(&appointments.MedicalAppointment{})
 				if result.Error != nil {
 					return fmt.Errorf("failed to delete physician appointments: %v", result.Error)
 				}
@@ -191,6 +176,13 @@ func (r *repository) DeleteUserCompletely(userID string) error {
 				return fmt.Errorf("failed to delete lab technician data: %v", result.Error)
 			}
 			fmt.Printf("Deleted lab technician record, rows affected: %d\n", result.RowsAffected)
+
+		case "super-admin":
+			result := tx.Where("user_id = ?", userID).Delete(&users.SuperAdmin{})
+			if result.Error != nil {
+				return fmt.Errorf("failed to delete super admin data: %v", result.Error)
+			}
+			fmt.Printf("Deleted super admin record, rows affected: %d\n", result.RowsAffected)
 		}
 
 		result := tx.Where("user_id = ?", userID).Delete(&users.LoginActivity{})

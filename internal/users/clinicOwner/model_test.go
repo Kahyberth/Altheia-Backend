@@ -7,7 +7,6 @@ import (
 	"time"
 )
 
-// validateClinicOwner validates a clinic owner's data
 func validateClinicOwner(owner *users.ClinicOwner) error {
 	if owner.UserID == "" {
 		return errors.New("clinic owner user ID is required")
@@ -62,7 +61,7 @@ func TestClinicOwner_Validation(t *testing.T) {
 				ClinicID: "clinic-123",
 				Status:   false,
 			},
-			wantErr: false, // Status can be false
+			wantErr: false,
 		},
 	}
 
@@ -108,7 +107,6 @@ func TestClinicOwner_StatusTransition(t *testing.T) {
 		Status:   true,
 	}
 
-	// Test status change
 	owner.Status = false
 	if owner.Status {
 		t.Error("Status should be false after change")
@@ -120,7 +118,6 @@ func TestClinicOwner_StatusTransition(t *testing.T) {
 	}
 }
 
-// Benchmark tests
 func BenchmarkClinicOwner_Creation(b *testing.B) {
 	b.ResetTimer()
 	for i := 0; i < b.N; i++ {

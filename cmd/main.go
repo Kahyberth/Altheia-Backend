@@ -12,8 +12,11 @@ import (
 	"Altheia-Backend/internal/users/patient"
 	"Altheia-Backend/internal/users/physician"
 	"Altheia-Backend/internal/users/receptionist"
+	"Altheia-Backend/internal/users/superAdmin"
+	wsInternal "Altheia-Backend/internal/websocket"
 	"os"
 
+	"github.com/gofiber/contrib/websocket"
 	"github.com/gofiber/fiber/v2"
 	"github.com/gofiber/fiber/v2/middleware/cors"
 )
@@ -35,6 +38,7 @@ func main() {
 		&users.Receptionist{},
 		&users.ClinicOwner{},
 		&users.LabTechnician{},
+		&users.SuperAdmin{},
 		&users.LoginActivity{},
 
 		&clinical.MedicalHistory{},
@@ -48,6 +52,17 @@ func main() {
 	}
 
 	client := os.Getenv("CLIENT")
+
+	// Crear hub y servicio de WebSocket
+	wsHub := wsInternal.NewHub()
+	wsService := wsInternal.NewService(database, wsHub)
+	wsHandler := wsInternal.NewHandler(wsHub, wsService)
+
+	// Iniciar el hub en una goroutine
+	go wsHub.Run()
+
+	// Iniciar actualizaciones en tiempo real
+	wsService.StartRealTimeUpdates()
 
 	authRepo := auth.NewRepository(database)
 	authService := auth.NewService(authRepo)
@@ -78,6 +93,11 @@ func main() {
 	receptionistService := receptionist.NewService(receptionistRepo)
 	receptionistHandler := receptionist.NewHandler(receptionistService)
 
+	// Super Admin handler
+	superAdminRepo := superAdmin.NewRepository(database)
+	superAdminService := superAdmin.NewService(superAdminRepo)
+	superAdminHandler := superAdmin.NewHandler(superAdminService)
+
 	// Appointment handler
 	appointmentRepo := appointments.NewRepository(database)
 	appointmentService := appointments.NewService(appointmentRepo)
@@ -93,11 +113,17 @@ func main() {
 		AllowCredentials: true,
 	}))
 
+	// WebSocket routes
+	wsGroup := app.Group("/ws")
+	wsGroup.Get("/stats", wsHandler.WebSocketUpgrade, websocket.New(wsHandler.HandleWebSocket))
+	wsGroup.Get("/status", wsHandler.GetStats)
+	wsGroup.Get("/clinic/:clinicId/status", wsHandler.GetClinicStats)
+	wsGroup.Post("/broadcast", wsHandler.BroadcastMessage)
+
 	// Routes
 
 	// Physician routes
 	physicianGroup := app.Group("/physician")
-	//physicianGroup.Use(middleware.JWTProtected())
 	physicianGroup.Post("/register", physicianHandler.RegisterPhysician)
 	physicianGroup.Patch("/update/:id", physicianHandler.UpdatePhysician)
 	physicianGroup.Get("/getAllPaginated/", physicianHandler.GetAllPhysiciansPaginated)
@@ -120,7 +146,6 @@ func main() {
 
 	// Medical History routes
 	medicalHistoryGroup := app.Group("/medical-history")
-	//medicalHistoryGroup.Use(middleware.JWTProtected())
 	medicalHistoryGroup.Get("/patient/:patientId", clinicHandler.GetMedicalHistoryByPatientID)
 	medicalHistoryGroup.Post("/create", clinicHandler.CreateMedicalHistory)
 	medicalHistoryGroup.Post("/consultation/create", clinicHandler.CreateConsultation)
@@ -153,6 +178,17 @@ func main() {
 	// Clinic Owner Routes
 	clinicOwnerGroup := app.Group("/clinic-owner")
 	clinicOwnerGroup.Post("/register", clinicOwnerHandler.CreateClinicOwner)
+
+	superAdminGroup := app.Group("/super-admin")
+	superAdminGroup.Post("/register", superAdminHandler.RegisterSuperAdmin)
+	superAdminGroup.Use(middleware.SuperAdminOnly())
+	superAdminGroup.Patch("/update/:id", superAdminHandler.UpdateSuperAdmin)
+	superAdminGroup.Get("/:id", superAdminHandler.GetSuperAdminByID)
+	superAdminGroup.Get("/", superAdminHandler.GetAllSuperAdminsPaginated)
+	superAdminGroup.Delete("/:id", superAdminHandler.SoftDeleteSuperAdmin)
+	superAdminGroup.Get("/system/all-data", superAdminHandler.GetAllSystemData)
+	superAdminGroup.Get("/users/deactivated", superAdminHandler.GetDeactivatedUsers)
+	superAdminGroup.Get("/users/clinic-owners", superAdminHandler.GetClinicOwners)
 
 	// Appointments routes
 	appointmentGroup := app.Group("/appointments")

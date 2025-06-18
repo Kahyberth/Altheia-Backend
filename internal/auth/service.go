@@ -72,6 +72,9 @@ func (s *service) getClinicIDFromUser(user *users.User) string {
 		}
 	case "owner":
 		return user.ClinicOwner.ClinicID
+	case "super-admin":
+
+		return ""
 	}
 	return ""
 }
@@ -168,6 +171,12 @@ func (s *service) GetUserDetails(id string) (UserDetailsResponse, error) {
 	case "owner":
 		roleDetails = map[string]interface{}{
 			"clinic_owner_id": user.ClinicOwner.ID,
+		}
+	case "super-admin":
+		roleDetails = map[string]interface{}{
+			"super_admin_id": user.SuperAdmin.ID,
+			"permissions":    user.SuperAdmin.Permissions,
+			"access_level":   "full_system_access",
 		}
 	}
 

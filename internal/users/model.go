@@ -26,6 +26,7 @@ type User struct {
 	Receptionist  Receptionist  `gorm:"foreignKey:UserID;references:ID" json:"receptionist,omitempty"`
 	ClinicOwner   ClinicOwner   `gorm:"foreignKey:UserID;references:ID" json:"clinic_owner,omitempty"`
 	LabTechnician LabTechnician `gorm:"foreignKey:UserID;references:ID" json:"lab_technician,omitempty"`
+	SuperAdmin    SuperAdmin    `gorm:"foreignKey:UserID;references:ID" json:"super_admin,omitempty"`
 }
 
 type Patient struct {
@@ -109,4 +110,15 @@ type LoginActivity struct {
 	UserAgent        string    `json:"user_agent"`
 	CreatedAt        time.Time `json:"created_at"`
 	UpdatedAt        time.Time `json:"updated_at"`
+}
+
+type SuperAdmin struct {
+	ID          string         `gorm:"primaryKey" json:"id"`
+	UserID      string         `gorm:"not null;index" json:"user_id"`
+	User        *User          `gorm:"foreignKey:UserID" json:"user"`
+	Permissions string         `json:"permissions"`
+	Status      bool           `json:"status"`
+	CreatedAt   time.Time      `json:"created_at"`
+	UpdatedAt   time.Time      `json:"updated_at"`
+	DeletedAt   gorm.DeletedAt `gorm:"index" json:"-"`
 }

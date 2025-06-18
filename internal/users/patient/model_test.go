@@ -116,7 +116,6 @@ func TestPatient_BloodTypeValidation(t *testing.T) {
 		Status:      true,
 	}
 
-	// Test valid blood types
 	for _, bt := range validBloodTypes {
 		patient.BloodType = bt
 		if err := validatePatient(&patient); err != nil {
@@ -124,7 +123,6 @@ func TestPatient_BloodTypeValidation(t *testing.T) {
 		}
 	}
 
-	// Test invalid blood types
 	for _, bt := range invalidBloodTypes {
 		patient.BloodType = bt
 		if err := validatePatient(&patient); err == nil {
@@ -133,7 +131,6 @@ func TestPatient_BloodTypeValidation(t *testing.T) {
 	}
 }
 
-// Benchmark tests
 func BenchmarkPatient_Creation(b *testing.B) {
 	b.ResetTimer()
 	for i := 0; i < b.N; i++ {

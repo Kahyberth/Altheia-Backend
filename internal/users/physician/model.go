@@ -5,7 +5,6 @@ import (
 	"time"
 )
 
-// Physician represents a physician in the system
 type Physician struct {
 	ID            string    `json:"id"`
 	UserID        string    `json:"user_id"`
@@ -16,7 +15,6 @@ type Physician struct {
 	UpdatedAt     time.Time `json:"updated_at"`
 }
 
-// validatePhysician validates a physician's data
 func validatePhysician(p *Physician) error {
 	if p.UserID == "" {
 		return errors.New("user ID is required")
@@ -30,7 +28,6 @@ func validatePhysician(p *Physician) error {
 		return errors.New("license number is required")
 	}
 
-	// Validate license number format (alphanumeric)
 	for _, c := range p.LicenseNumber {
 		if !((c >= '0' && c <= '9') || (c >= 'A' && c <= 'Z') || (c >= 'a' && c <= 'z')) {
 			return errors.New("license number must be alphanumeric")

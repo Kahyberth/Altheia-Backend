@@ -5,7 +5,6 @@ import (
 	"time"
 )
 
-// Receptionist represents a receptionist in the system
 type Receptionist struct {
 	ID        string    `json:"id"`
 	UserID    string    `json:"user_id"`
@@ -15,7 +14,6 @@ type Receptionist struct {
 	UpdatedAt time.Time `json:"updated_at"`
 }
 
-// validateReceptionist validates a receptionist's data
 func validateReceptionist(r *Receptionist) error {
 	if r.UserID == "" {
 		return errors.New("user ID is required")
